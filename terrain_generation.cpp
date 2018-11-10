@@ -7,7 +7,9 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 
-int randInt(int min=0, int max=127) { return rand() % (max - min) + min; }
+#define MAX_VAL 255/2
+
+int randInt(int min=0, int max=MAX_VAL) { return rand() % (max - min) + min; }
 
 template <typename T>
 void applySquare(int row, int col, int k, cv::Mat& img, float p) {
@@ -108,7 +110,7 @@ int main(int argc, char** argv) {
   srand(time(NULL));
   std::cout << "Creating map of size " << n << "\n";
   cv::Mat heightMap(cv::Size(n, n), CV_8U, cv::Scalar(0));
-  std::array<int, 4> corners = {randInt(0,255), randInt(0,255), randInt(0,255), randInt(0,255)};
+  std::array<int, 4> corners = {randInt(), randInt(), randInt(), randInt()};
   namedWindow("Generated terrain", cv::WINDOW_NORMAL );// Create a window for display.
   cv::resizeWindow("Generated terrain", 1000, 1000);
 

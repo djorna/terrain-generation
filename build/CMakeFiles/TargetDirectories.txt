@@ -1,3 +1,0 @@
-/home/djorna/Documents/TerrainGeneration/build/CMakeFiles/edit_cache.dir
-/home/djorna/Documents/TerrainGeneration/build/CMakeFiles/rebuild_cache.dir
-/home/djorna/Documents/TerrainGeneration/build/CMakeFiles/terrain_generation.dir

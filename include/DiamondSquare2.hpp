@@ -1,10 +1,7 @@
 #pragma once
 
-#include "common.hpp"
-
 #include <array>
 #include <string>
-#include <numeric>
 
 // Random number generation
 #include <time.h>
@@ -31,7 +28,7 @@ public:
    * \param corners The corner values to initialize the heightmap. Should be integer values
    * between 0 and 255.
    */
-  cv::Mat generate(const int n, const std::array<float, 4> corners, const float decay=0.5, bool normalized=true);
+  cv::Mat generate(const int n, const std::array<int, 4> corners, const float decay=0.5);
 
   /** \brief Generate a heightmap with a random initialization.
    * 
@@ -40,18 +37,11 @@ public:
    * \param decay The decay parameter. Higher values will result in greater variance in
    * height
    */
-  cv::Mat generate(int n, float decay=0.5, bool normalized=true);
+  cv::Mat generate(int n, float decay=0.5);
 
 private:
 
-  /** \brief Convenience method to determine whether point is valid
-   *
-   * \param r The row index
-   * \param c The column index
-   * \param r_max The number of rows in the matrix
-   * \param r_min The number of columns in the matrix
-   */
-  inline bool DiamondSquare::pointInRange(int r, int c, int r_max, int c_max);
+  int randInt(int min, int max);
 
   /** \brief Perform a complete "diamond" step.
    * 

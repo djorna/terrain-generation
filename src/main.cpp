@@ -24,8 +24,6 @@ int main(int argc, char** argv) {
   float persistence = 0.5; // Higher = more jagged terrain
   DiamondSquare diamondSquare;
 
-    
-  
   auto heightmap = diamondSquare.generate(n, persistence);
   cv::imshow("Generated terrain", heightmap);
   

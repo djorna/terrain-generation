@@ -2,59 +2,50 @@
 
 #include <iostream>
 
-DiamondSquare::DiamondSquare() {}
+DiamondSquare::DiamondSquare() {
+}
 
 DiamondSquare::~DiamondSquare() {}
 
-inline int DiamondSquare::randInt(int min=0, const int max=255/2) { return rand() % (max - min) + min; }
+// inline int DiamondSquare::randInt(int min=0, const int max=255/2) { return rand() % (max - min) + min; }
+
+bool DiamondSquare::pointInRange(int r, int c, int r_max, int c_max)
+{
+  return (r >= 0) && (r < r_max) && (c >= 0) && (c < c_max);
+}
 
 void DiamondSquare::applySquare(cv::Mat& heightmap, const int row, const int col, const int k, const float p) {
-  int step = k/2;
-  float result = 0;
-  float i = 0;
-
-  if (col - step > 0) {
-    result += heightmap.at<uchar>(row, col - step);
-    ++i;
-  }
-  if (col + step < heightmap.cols) {
-    result += heightmap.at<uchar>(row, col + step);
-    ++i;
-  }
-  if (row - step > 0) { 
-    result += heightmap.at<uchar>(row - step, col);
-    ++i;
-  }
-  if (row + step < heightmap.rows) {
-    result += heightmap.at<uchar>(row + step, col);
-    ++i;
-  }
-  result /= i;
-  result += randInt() * p;
-  heightmap.at<uchar>(row, col) = result;
+  int step = k / 2;
+  std::vector<float> feature_points;
+  std::vector<std::vector<int>> pts = { {row, col - step}, {row, col + step}, {row - step, col}, {row + step, col } };
+  for (auto pt : pts)
+    if (pointInRange(pt[0], pt[1], heightmap.rows, heightmap.cols))
+      feature_points.push_back(heightmap.at<float>(pt[0], pt[1]));
+    
+  float result = average(feature_points);
+  result += randf() * p; // Add random part
+  // std::cout << "Result: " << result << '\n';
+  heightmap.at<float>(row, col) = result;
 }
 
 void DiamondSquare::applyDiamond(cv::Mat& heightmap, int row, int col, int k, float p) {
   int step = k/2;
-  float result = 0;
-  result = heightmap.at<uchar>(row - step, col - step)
-         + heightmap.at<uchar>(row + step, col - step)
-         + heightmap.at<uchar>(row - step, col + step)
-         + heightmap.at<uchar>(row + step, col + step);
+  float result = heightmap.at<float>(row - step, col - step)
+         + heightmap.at<float>(row + step, col - step)
+         + heightmap.at<float>(row - step, col + step)
+         + heightmap.at<float>(row + step, col + step);
   result /= 4;
-  result += randInt() * p;
-  heightmap.at<uchar>(row, col) = result;
+  result += randf() * p;
+ // std::cout << "Result: " << result << '\n';
+  heightmap.at<float>(row, col) = result;
 }
 
 void DiamondSquare::diamond(cv::Mat& heightmap, int k, float p) {
   int stride = k - 1;
-  //int nApplications = pow((heightmap.rows() - 1) / (k - 1), 2);
 
-  for (int i = k / 2; i < heightmap.rows; i += stride) {
-    for (int j = k / 2; j < heightmap.cols; j += stride) {
+  for (int i = k / 2; i < heightmap.rows; i += stride)
+    for (int j = k / 2; j < heightmap.cols; j += stride)
       applyDiamond(heightmap, i, j, k, p);
-    }
-  }
 }
 
 void DiamondSquare::square(cv::Mat& heightmap, int k, float p) {
@@ -71,33 +62,36 @@ void DiamondSquare::square(cv::Mat& heightmap, int k, float p) {
 
 void DiamondSquare::diamondSquare(cv::Mat& heightmap, const int n, const float decay) {
   float p = 1;
+  //namedWindow("debug", cv::WINDOW_NORMAL );// Create a window for display.
+  //cv::resizeWindow("debug", 1000, 1000);
   for (int k = n; k > 2; k = (k + 1) / 2) {
     diamond(heightmap, k, p);
+    //cv::imshow("debug", heightmap);
+    //cv::waitKey(0);
     square(heightmap, k, p);
+    //cv::imshow("debug", heightmap);
+    //cv::waitKey(0);
     p *= decay;
+    std::cout << k << ",";
   }
 }
 
-cv::Mat DiamondSquare::generate(const int n, const std::array<int, 4> corners, const float decay) {
+cv::Mat DiamondSquare::generate(const int n, const std::array<float, 4> corners, const float decay, bool normalized) {
   cv::Mat heightmap;
-  heightmap = cv::Mat::zeros(cv::Size(n, n), CV_8UC1);
-
-  std::cout << "Initializing corners..." << std::endl;
+  heightmap = cv::Mat::zeros(cv::Size(n, n), CV_32FC1);
 
   // Initialize corners
-  heightmap.at<uchar>(0, 0) = corners[0];
-  heightmap.at<uchar>(0, n - 1) = corners[1];
-  heightmap.at<uchar>(n - 1, 0) = corners[2];
-  heightmap.at<uchar>(n - 1, n - 1) = corners[3];
-
-  std::cout << "Starting diamond-square..." << std::endl;
+  heightmap.at<float>(0, 0) = corners[0];
+  heightmap.at<float>(0, n - 1) = corners[1];
+  heightmap.at<float>(n - 1, 0) = corners[2];
+  heightmap.at<float>(n - 1, n - 1) = corners[3];
 
   diamondSquare(heightmap, n, decay);
-  cv::imshow("Generated terrain", heightmap);
-  cv::waitKey(0);
+  if (normalized)
+    cv::normalize(heightmap, heightmap, 1, 0, cv::NORM_MINMAX);
   return heightmap;
 }
 
-cv::Mat DiamondSquare::generate(const int n, const float decay) {
-  return generate(n, {randInt(), randInt(), randInt(), randInt()}, decay);
+cv::Mat DiamondSquare::generate(const int n, const float decay, bool normalized) {
+  return generate(n, {randf(), randf(), randf(), randf()}, decay);
 }

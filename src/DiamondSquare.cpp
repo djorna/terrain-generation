@@ -2,17 +2,9 @@
 
 #include <iostream>
 
-DiamondSquare::DiamondSquare() {
-}
+DiamondSquare::DiamondSquare() {}
 
 DiamondSquare::~DiamondSquare() {}
-
-// inline int DiamondSquare::randInt(int min=0, const int max=255/2) { return rand() % (max - min) + min; }
-
-bool DiamondSquare::pointInRange(int r, int c, int r_max, int c_max)
-{
-  return (r >= 0) && (r < r_max) && (c >= 0) && (c < c_max);
-}
 
 void DiamondSquare::applySquare(cv::Mat& heightmap, const int row, const int col, const int k, const float p) {
   int step = k / 2;

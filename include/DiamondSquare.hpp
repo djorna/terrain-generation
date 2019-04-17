@@ -51,7 +51,6 @@ private:
    * \param r_max The number of rows in the matrix
    * \param r_min The number of columns in the matrix
    */
-  inline bool DiamondSquare::pointInRange(int r, int c, int r_max, int c_max);
 
   /** \brief Perform a complete "diamond" step.
    * 

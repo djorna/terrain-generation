@@ -46,6 +46,16 @@ void EXPORT_API DiamondSquarePluginFloat(float *data, int n, float persistence)
   extractData(heightmap, data);
 }
 
+void EXPORT_API VoronoiPlugin(float* data, int n, int n_points, int n_coeffs, float* coeffs)
+{
+  int rows = n, cols = n;
+  std::vector<float> vcoeffs(coeffs, coeffs + n_coeffs);
+  Voronoi vrn = Voronoi(rows, cols, vcoeffs, n_points);
+  vrn.generatePoints(n_points, rows, cols);
+  cv::Mat vrn_img = vrn.generate();
+  extractData(vrn_img, data);
+}
+
 float EXPORT_API AddTwoFloats(float a, float b) {
 	return a + b;
 }

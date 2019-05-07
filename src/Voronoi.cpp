@@ -108,11 +108,7 @@ cv::Mat Voronoi::generate()
   return heatmap;
 }
 
-/**
- * \brief Uniformly cull a percentage
- * \param keep Fraction of regions to keep 
- * \param seed The seed of the uniform distribution
- */
+
 void Voronoi::binaryMask(float keep, int seed)
 {
   if (keep >= 1) return;
@@ -124,11 +120,7 @@ void Voronoi::binaryMask(float keep, int seed)
     multipliers[indices[i]] = 0;
 }
 
-/**
- * \brief Vary height of regions based on a normal distribution
- * \param mean The mean of the normal distribution
- * \param stdev The standard deviation of the normal distribution
- */
+
 void Voronoi::shiftHeightMask(float mean, float stdev)
 {
   // std::uniform_real_distribution<float> uniform(0, 1);

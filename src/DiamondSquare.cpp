@@ -1,6 +1,5 @@
 #include "DiamondSquare.hpp"
-
-#include <iostream>
+#include <algorithm>
 
 DiamondSquare::DiamondSquare() {}
 
@@ -14,22 +13,19 @@ void DiamondSquare::applySquare(cv::Mat& heightmap, const int row, const int col
     if (pointInRange(pt[0], pt[1], heightmap.rows, heightmap.cols))
       feature_points.push_back(heightmap.at<float>(pt[0], pt[1]));
     
-  float result = average(feature_points);
-  result += randf() * p; // Add random part
-  // std::cout << "Result: " << result << '\n';
-  heightmap.at<float>(row, col) = result;
+  float height = average(feature_points) + randf(0, p);
+  heightmap.at<float>(row, col) = height;
 }
 
 void DiamondSquare::applyDiamond(cv::Mat& heightmap, int row, int col, int k, float p) {
   int step = k/2;
-  float result = heightmap.at<float>(row - step, col - step)
+  float height = heightmap.at<float>(row - step, col - step)
          + heightmap.at<float>(row + step, col - step)
          + heightmap.at<float>(row - step, col + step)
          + heightmap.at<float>(row + step, col + step);
-  result /= 4;
-  result += randf() * p;
- // std::cout << "Result: " << result << '\n';
-  heightmap.at<float>(row, col) = result;
+  height /= 4;
+  height += randf(0, p);;
+  heightmap.at<float>(row, col) = height;
 }
 
 void DiamondSquare::diamond(cv::Mat& heightmap, int k, float p) {
@@ -52,7 +48,8 @@ void DiamondSquare::square(cv::Mat& heightmap, int k, float p) {
       applySquare(heightmap, i, j, k, p);
 }
 
-void DiamondSquare::diamondSquare(cv::Mat& heightmap, const int n, const float decay) {
+void DiamondSquare::diamondSquare(cv::Mat& heightmap, const int n, const float decay)
+{
   float p = 1;
   //namedWindow("debug", cv::WINDOW_NORMAL );// Create a window for display.
   //cv::resizeWindow("debug", 1000, 1000);
@@ -64,11 +61,12 @@ void DiamondSquare::diamondSquare(cv::Mat& heightmap, const int n, const float d
     //cv::imshow("debug", heightmap);
     //cv::waitKey(0);
     p *= decay;
-    std::cout << k << ",";
   }
 }
 
-cv::Mat DiamondSquare::generate(const int n, const std::array<float, 4> corners, const float decay, bool normalized) {
+cv::Mat DiamondSquare::generate(const int n, const std::array<float, 4> corners, const float decay, int seed, bool normalized)
+{
+  seed_rand(seed);
   cv::Mat heightmap;
   heightmap = cv::Mat::zeros(cv::Size(n, n), CV_32FC1);
 
@@ -84,6 +82,6 @@ cv::Mat DiamondSquare::generate(const int n, const std::array<float, 4> corners,
   return heightmap;
 }
 
-cv::Mat DiamondSquare::generate(const int n, const float decay, bool normalized) {
+cv::Mat DiamondSquare::generate(const int n, const float decay, int seed, bool normalized) {
   return generate(n, {randf(), randf(), randf(), randf()}, decay);
 }

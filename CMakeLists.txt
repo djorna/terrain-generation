@@ -2,26 +2,30 @@ cmake_minimum_required(VERSION 2.8)
 set(CMAKE_CXX_STANDARD 11) 
 project(terrain_generation)
 
-option(BUILD_TESTS "build unit tests" ON)
+option(BUILD_TESTS "Build unit tests" ON)
+option(BUILD_UNITY "Build Unity3D plugin" ON)
 
 find_package(OpenCV REQUIRED)
 
-include_directories(${PROJECT_SOURCE_DIR}/include
-  ${PROJECT_SOURCE_DIR}/unity
-)
+if(BUILD_UNITY)
+  include_directories(${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/unity)
+endif()
 
 set(CORE_LIB_SOURCES
   ${PROJECT_SOURCE_DIR}/src/DiamondSquare.cpp
   ${PROJECT_SOURCE_DIR}/src/Voronoi.cpp
   ${PROJECT_SOURCE_DIR}/src/ThermalErosion.cpp
+  ${PROJECT_SOURCE_DIR}/src/HydraulicErosion.cpp
   ${PROJECT_SOURCE_DIR}/src/Kernel.cpp
 )
 
 set(TEST_SOURCES
-  ${PROJECT_SOURCE_DIR}/src/test_diamondsquare.cpp
-  ${PROJECT_SOURCE_DIR}/src/test_voronoi.cpp
-  ${PROJECT_SOURCE_DIR}/src/test_combine.cpp
-  ${PROJECT_SOURCE_DIR}/src/test_thermal_erosion.cpp
+  ${PROJECT_SOURCE_DIR}/src/tests/test_diamondsquare.cpp
+  ${PROJECT_SOURCE_DIR}/src/tests/test_voronoi.cpp
+  ${PROJECT_SOURCE_DIR}/src/tests/test_combine.cpp
+  ${PROJECT_SOURCE_DIR}/src/tests/test_thermal_erosion.cpp
+  ${PROJECT_SOURCE_DIR}/src/tests/test_hydraulic_erosion.cpp
+  ${PROJECT_SOURCE_DIR}/src/tests/test_mask.cpp
 )
 
 foreach(lib_path ${CORE_LIB_SOURCES})
@@ -36,16 +40,12 @@ endforeach()
 add_library(common INTERFACE)
 target_include_directories(common INTERFACE ${PROJECT_SOURCE_DIR}/include)
 
-# Erosion interface
-add_library(Erosion INTERFACE)
-target_include_directories(Erosion INTERFACE ${PROJECT_SOURCE_DIR}/include)
-target_link_libraries(Erosion INTERFACE ${OpenCV_LIBS})
-
 # Unity Plugin
 add_library(terrain_plugin SHARED unity/terrain_plugin.cpp)
 
 target_link_libraries(${LIBS} ${OpenCV_LIBS} common)
 target_link_libraries(ThermalErosion Kernel)
+target_link_libraries(HydraulicErosion Kernel)
 
 # Add unit test executables
 if(BUILD_TESTS)
@@ -60,7 +60,10 @@ if(BUILD_TESTS)
   target_link_libraries(test_voronoi Voronoi)
   target_link_libraries(test_combine Voronoi DiamondSquare)
   target_link_libraries(test_thermal_erosion Voronoi DiamondSquare ThermalErosion)
+  target_link_libraries(test_hydraulic_erosion Voronoi DiamondSquare HydraulicErosion)
+  target_link_libraries(test_mask Voronoi DiamondSquare)
 endif()
 
-
-target_link_libraries(terrain_plugin Voronoi DiamondSquare)
+if(BUILD_UNITY)
+  target_link_libraries(terrain_plugin Voronoi DiamondSquare)
+endif()

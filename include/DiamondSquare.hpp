@@ -31,7 +31,7 @@ public:
    * \param corners The corner values to initialize the heightmap. Should be integer values
    * between 0 and 255.
    */
-  cv::Mat generate(const int n, const std::array<float, 4> corners, const float decay=0.5, bool normalized=true);
+  cv::Mat generate(const int n, const std::array<float, 4> corners, const float decay=0.5, int seed=-1, bool normalized=true);
 
   /** \brief Generate a heightmap with a random initialization.
    * 
@@ -40,17 +40,9 @@ public:
    * \param decay The decay parameter. Higher values will result in greater variance in
    * height
    */
-  cv::Mat generate(int n, float decay=0.5, bool normalized=true);
+  cv::Mat generate(int n, float decay=0.5, int seed=-1, bool normalized=true);
 
 private:
-
-  /** \brief Convenience method to determine whether point is valid
-   *
-   * \param r The row index
-   * \param c The column index
-   * \param r_max The number of rows in the matrix
-   * \param r_min The number of columns in the matrix
-   */
 
   /** \brief Perform a complete "diamond" step.
    * 
@@ -88,4 +80,7 @@ private:
   void applyDiamond(cv::Mat& heightmap, int row, int col, int k, float p);
 
   void diamondSquare(cv::Mat& heightmap, const int n, const float decay=0.5);
+
+  // std::random_device rd;
+  // std::mt19937 pseudo_rand_engine;
 };

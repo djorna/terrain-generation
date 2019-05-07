@@ -2,21 +2,35 @@
 
 #include <random>
 #include <numeric>
+#include <ctime>
+
+static std::random_device random_device;
+static std::mt19937 pseudo_rand_engine;
 
 template<typename T>
-inline T rand(T min, T max) { return min + static_cast <T> (rand()) / (static_cast <T> (RAND_MAX/(max - min))); }
+inline T rand(const T min, const T max) { return min + static_cast <T> (rand()) / (static_cast<T>(RAND_MAX/(max - min))); }
 
-inline float randf(float min = 0, float max = 1) { return rand<float>(max, min); }
+inline float randf(const float min=0, const float max=1) { return rand<float>(max, min); }
 
-inline int randi(int min, int max) { return rand<int>(min, max); }
+inline int randi(const int min, const int max) { return rand<int>(min, max); }
 
-inline float average(std::vector<float> vec)
+inline void seed_rand(int seed)
+{
+  // seed > 0 ? srand(seed) : srand(time(0));
+  if (seed > 0)
+    pseudo_rand_engine.seed(seed);
+  else
+    pseudo_rand_engine.seed(random_device());
+}
+
+inline float average(const std::vector<float> vec)
 { 
-  float sum = 0;
-  for (auto val : vec)
-    sum += val;
-  sum /= static_cast<float>(vec.size());
-  return sum;
+  return std::accumulate(vec.begin(), vec.end(), 0.0) / static_cast<float>(vec.size());
+}
+
+inline float sum(const std::vector<float> vec)
+{
+  return std::accumulate(vec.begin(), vec.end(), 0.0);
 }
 
  /** \brief Convenience method to determine whether point is valid
@@ -26,7 +40,7 @@ inline float average(std::vector<float> vec)
    * \param r_max The number of rows in the matrix
    * \param r_min The number of columns in the matrix
    */
-inline bool pointInRange(int r, int c, int r_max, int c_max)
+inline bool pointInRange(const int r, const int c, const int r_max, const int c_max)
 {
   return (r >= 0) && (r < r_max) && (c >= 0) && (c < c_max);
 }

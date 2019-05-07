@@ -1,32 +1,43 @@
 #include "Voronoi.hpp"
 
-Voronoi::Voronoi(int rows, int cols, std::vector<float> coeffs, int n_points)
-  : rows(rows), cols(cols), coeffs(coeffs)
+#include <iostream>
+
+Voronoi::Voronoi(int rows, int cols, std::vector<float> coeffs, int n_points, int seed)
+  : rows(rows), cols(cols), coeffs(coeffs), seed(seed)
 {
   generatePoints(n_points, rows, cols);
   n_coeffs = coeffs.size();
-  srand(999);
+  multipliers.resize(n_points, 1);
 }
 
-Voronoi::Voronoi(int rows, int cols, std::vector<float> coeffs, PointList points)
-  : rows(rows), cols(cols), coeffs(coeffs), points(points)
+Voronoi::Voronoi(int rows, int cols, std::vector<float> coeffs, PointList points, int seed)
+  : rows(rows), cols(cols), coeffs(coeffs), points(points), seed(seed)
 {
-  
+  n_coeffs = coeffs.size();
+  multipliers.resize(points.size(), 1);
 }
 
 Voronoi::~Voronoi() {}
 
 void Voronoi::generatePoints(int n_points, int rows, int cols)
 {
-  // std::default_random_engine generator;
-  std::random_device generator;
+  // std::random_device random_device;
+  // std::mt19937 pseudo_rand_engine;
+  /*
+  if (seed > 0)
+    pseudo_rand_engine.seed(seed);
+  else
+    pseudo_rand_engine.seed(random_device());
+  */
+  seed_rand(seed);
+
   std::uniform_int_distribution<int> row_distribution(0, rows);
   std::uniform_int_distribution<int> col_distribution(0, cols);
   for (int i = 0; i < n_points; ++i)
   {
-    int x = col_distribution(generator);
-    int y = row_distribution(generator);
-    points.push_back(cv::Point2i(x, y));
+    int x = col_distribution(pseudo_rand_engine);
+    int y = row_distribution(pseudo_rand_engine);
+    points.push_back(Point(x, y));
   }
 }
 
@@ -40,7 +51,7 @@ void Voronoi::drawPoints(cv::Mat& img)
   }
   try 
   {
-    for (cv::Point2i point : points)
+    for (Point point : points)
     {
       std::cout << "Point:" << point << std::endl;
       img.at<float>(point.y, point.x) = 1;
@@ -66,12 +77,12 @@ cv::Mat Voronoi::generate()
 
   for (auto && point : points) {
     //Fill matrix
-    float norm_x = point.x / cols;
-    float norm_y = point.y / rows;
+    float norm_x = static_cast<float>(point.x) / cols;
+    float norm_y = static_cast<float>(point.y) / rows;
     cv::Mat row = (cv::Mat_<float>(1, 2) << norm_x, norm_y);
     features.push_back(row);
   }
-  cv::flann::Index flann_index(features, cv::flann::KDTreeIndexParams(1), cvflann::FLANN_DIST_EUCLIDEAN);
+  cv::flann::Index flann_index(features, cv::flann::KDTreeIndexParams(1), cvflann::EUCLIDEAN);
 
   // Brute force approach
   for (int i = 0; i < rows; ++i)
@@ -82,17 +93,54 @@ cv::Mat Voronoi::generate()
       cv::Mat indices, dists;
       flann_index.knnSearch(query, indices, dists, n_coeffs, searchParams);
 
-      int index_0 = indices.at<int>(0);
-      int index_1 = indices.at<int>(1);
+      // int index_0 = indices.at<int>(0);
+      // int index_1 = indices.at<int>(1);
 
       float pixel_value = 0;
       for (int c = 0; c < n_coeffs; ++c)
         pixel_value += coeffs[c] * dists.at<float>(0, c);
 
-      heatmap.at<float>(i, j) = pixel_value;
+      heatmap.at<float>(i, j) = pixel_value + multipliers[indices.at<int>(0)];
     }
   }
   
   cv::normalize(heatmap, heatmap, 1, 0, cv::NORM_MINMAX);
   return heatmap;
+}
+
+/**
+ * \brief Uniformly cull a percentage
+ * \param keep Fraction of regions to keep 
+ * \param seed The seed of the uniform distribution
+ */
+void Voronoi::binaryMask(float keep, int seed)
+{
+  if (keep >= 1) return;
+  std::vector<int> indices(points.size());
+  std::iota(std::begin(indices), std::end(indices), 0); // Get numbers from 0 to n
+  seed_rand(seed);
+  std::shuffle(indices.begin(), indices.end(), pseudo_rand_engine); // Uniformly shuffle indices
+  for (int i = 0; i < (1.0f - keep) * indices.size(); ++i)
+    multipliers[indices[i]] = 0;
+}
+
+/**
+ * \brief Vary height of regions based on a normal distribution
+ * \param mean The mean of the normal distribution
+ * \param stdev The standard deviation of the normal distribution
+ */
+void Voronoi::shiftHeightMask(float mean, float stdev)
+{
+  // std::uniform_real_distribution<float> uniform(0, 1);
+  std::normal_distribution<float> normal(mean, stdev);
+  for (int i = 0; i < multipliers.size(); ++i)
+  {
+    if (multipliers[i] > 0)
+    {
+      float value = normal(pseudo_rand_engine);
+      if (value < 0) value = 0;
+      if (value > 1) value = 1;
+      multipliers[i] *= value;
+    }
+  }
 }

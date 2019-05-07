@@ -2,8 +2,10 @@
 
 #include <iostream>
 #include <opencv2/opencv.hpp>
+#include <random>
 
 using namespace cv;
+using namespace std;
 
 
 void extractData(cv::Mat& mat, std::vector<uchar>& array)
@@ -61,7 +63,6 @@ int main(int argc, char** argv) {
       persistence = std::atof(argv[2]);
   }
   int n = pow(2, x) + 1;
-  srand(time(NULL));
   std::cout << "Creating map of size " << n << "\n";
 
   namedWindow("Generated terrain", cv::WINDOW_NORMAL );// Create a window for display.
@@ -71,7 +72,7 @@ int main(int argc, char** argv) {
   
   DiamondSquare diamondSquare;
 
-  auto heightmap = diamondSquare.generate(n, persistence);
+  auto heightmap = diamondSquare.generate(n, persistence, 1337);
   cv::imshow("Generated terrain", heightmap);
 
   // uchar* mat_data = heightmap.data;
@@ -83,8 +84,10 @@ int main(int argc, char** argv) {
   cv::resizeWindow("Generated terrain 2", 1000, 1000);
   cv::imshow("Generated terrain 2", heightmap2);
 
-  std::cout << heightmap << std::endl;
+  // std::cout << heightmap << std::endl;
+  cout << "RAND_MAX / 0.6 " << RAND_MAX << " " << RAND_MAX / 0.6;
 
+  /*
   uchar* data;
   extractData2(heightmap2, data);
   float* data2;
@@ -92,9 +95,6 @@ int main(int argc, char** argv) {
   std::cout << "---------------- floats \n";
   std::cout << "data2:" << data2[0] << ", " << data2[1] << std::endl;
   std::cout << "heightmap:" <<  (float)heightmap.at<float>(0, 0) << (float)heightmap.at<float>(0, 1) << std::endl;
-  /*
-  std::cout << data[0] << data[1] << std::endl;
-  std::cout << heightmap2.at<uchar>(0, 0) << heightmap2.at<uchar>(0, 1);
   */
   
   cv::waitKey(0);

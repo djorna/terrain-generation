@@ -1,0 +1,5 @@
+W  = water map
+M = sediment map
+Kr - amount of water added to each cell in W at iteration t
+Ks - solubility constant
+convert height to sediment based on Ks

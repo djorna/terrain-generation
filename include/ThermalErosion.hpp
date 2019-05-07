@@ -17,8 +17,12 @@ class ThermalErosion : public Kernel
 
     void operation(cv::Mat& img, Point center, std::vector<Point> neighbours);
 
+    void apply(cv::Mat& img, int iterations=1);
+
+    void moveMaterial(cv::Mat& img, Point move_from, Point move_to, float amount);
+
   private:
-    float talus_angle; // T
-    float magnitude = 1; // c
-    KernelType kernel_type;
+    float talus_angle = 0.0078; // T
+    float magnitude = 0.5; // c
+    // KernelType kernel_type;
 };

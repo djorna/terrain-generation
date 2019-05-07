@@ -20,14 +20,11 @@ int main(int argc, char** argv) {
 
   //vector<float> coeffs{ -1 };
   int n_points = 10;
-  Voronoi vrn = Voronoi(rows, cols, coeffs, n_points);
-  cout << "Generating points...\n";
-  vrn.generatePoints(n_points, rows, cols);
+  Voronoi vrn = Voronoi(rows, cols, coeffs, n_points, 1337);
   Mat img;
   img = Mat::zeros(rows, cols, CV_32FC1);
   cout << "Drawing points...\n";
   vrn.drawPoints(img);
-
 
   imshow("Points", img);
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common.hpp"
+#include "Random.hpp"
 
 #include <array>
 #include <string>
@@ -81,6 +82,5 @@ private:
 
   void diamondSquare(cv::Mat& heightmap, const int n, const float decay=0.5);
 
-  // std::random_device rd;
-  // std::mt19937 pseudo_rand_engine;
+  // Random random;
 };

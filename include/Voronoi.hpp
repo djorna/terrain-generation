@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common.hpp"
+#include "Random.hpp"
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/flann/miniflann.hpp>
@@ -26,9 +27,6 @@ public:
 
   ~Voronoi();
 
-  void generatePoints();
-
-  void generatePoints(int n_points, int rows, int cols);
 
   // void setPoints(PointList points);
 
@@ -50,16 +48,23 @@ public:
   * \param mean The mean of the normal distribution
   * \param stdev The standard deviation of the normal distribution
   */
-  void shiftHeightMask(float mean, float stdev);
+  void shiftHeightMask(float mean, float stdev, int seed);
 
 private:
+  void generatePoints(int n_points, int rows, int cols);
+
   cv::Mat heatmap;
   PointList points;
   std::vector<float> coeffs;
+  std::vector<float> multipliers;
+  // Random random;
   int n_coeffs;
+  int n_points;
   int rows;
   int cols;
   int seed;
-  std::vector<float> multipliers;
+  int point_seed;
+  int mask_seed;
+  int shift_seed;
   // std::unordered_map<int, std::vector<Point>> region;
 };

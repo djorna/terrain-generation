@@ -40,7 +40,7 @@ int main(int argc, char** argv)
   auto heightmap_ds = diamondSquare.generate(n, persistence);
 
   int n_points = 50;
-  Voronoi vrn = Voronoi(rows, cols, coeffs, n_points);
+  Voronoi vrn(rows, cols, coeffs, n_points);
   auto heightmap_vrn = vrn.generate();
 
   // cv::Mat combined = combine({ heightmap_ds, heightmap_vrn }, { 1 / 3, 2 / 3 });

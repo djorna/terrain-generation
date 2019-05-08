@@ -1,5 +1,6 @@
 #include "DiamondSquare.hpp"
 #include <algorithm>
+#include <iostream>
 
 DiamondSquare::DiamondSquare() {}
 
@@ -13,7 +14,8 @@ void DiamondSquare::applySquare(cv::Mat& heightmap, const int row, const int col
     if (pointInRange(pt[0], pt[1], heightmap.rows, heightmap.cols))
       feature_points.push_back(heightmap.at<float>(pt[0], pt[1]));
     
-  float height = average(feature_points) + randf(0, p);
+  // float height = average(feature_points) + randf(0, p);
+  float height = average(feature_points) + p;
   heightmap.at<float>(row, col) = height;
 }
 
@@ -24,28 +26,37 @@ void DiamondSquare::applyDiamond(cv::Mat& heightmap, int row, int col, int k, fl
          + heightmap.at<float>(row - step, col + step)
          + heightmap.at<float>(row + step, col + step);
   height /= 4;
-  height += randf(0, p);;
+  height += p;
+ // std::cout << "\np: " << p;
   heightmap.at<float>(row, col) = height;
 }
 
 void DiamondSquare::diamond(cv::Mat& heightmap, int k, float p) {
   int stride = k - 1;
 
+  std::uniform_real_distribution<float> dis(0.0f, 1.0f);
+
   for (int i = k / 2; i < heightmap.rows; i += stride)
     for (int j = k / 2; j < heightmap.cols; j += stride)
-      applyDiamond(heightmap, i, j, k, p);
+      //applyDiamond(heightmap, i, j, k, p * random.randf());
+      applyDiamond(heightmap, i, j, k, p * dis(pseudo_rand_engine));
 }
 
 void DiamondSquare::square(cv::Mat& heightmap, int k, float p) {
   int stride = k - 1;
 
+  std::uniform_real_distribution<float> dis(0.0f, 1.0f);
+  // Random random(0.0f, 1.0f, -1);
+
   for (int i = k / 2; i < heightmap.rows; i += stride)
     for (int j = 0; j < heightmap.cols; j += stride)
-      applySquare(heightmap, i, j, k, p);
+      // applySquare(heightmap, i, j, k, p * random.randf());
+      applySquare(heightmap, i, j, k, p * dis(pseudo_rand_engine));
 
   for (int i = 0; i < heightmap.rows; i += stride)
     for (int j = k / 2; j < heightmap.cols; j += stride)
-      applySquare(heightmap, i, j, k, p);
+      // applySquare(heightmap, i, j, k, p * random.randf());
+      applySquare(heightmap, i, j, k, p * dis(pseudo_rand_engine));
 }
 
 void DiamondSquare::diamondSquare(cv::Mat& heightmap, const int n, const float decay)
@@ -53,6 +64,7 @@ void DiamondSquare::diamondSquare(cv::Mat& heightmap, const int n, const float d
   float p = 1;
   //namedWindow("debug", cv::WINDOW_NORMAL );// Create a window for display.
   //cv::resizeWindow("debug", 1000, 1000);
+
   for (int k = n; k > 2; k = (k + 1) / 2) {
     diamond(heightmap, k, p);
     //cv::imshow("debug", heightmap);
@@ -66,7 +78,6 @@ void DiamondSquare::diamondSquare(cv::Mat& heightmap, const int n, const float d
 
 cv::Mat DiamondSquare::generate(const int n, const std::array<float, 4> corners, const float decay, int seed, bool normalized)
 {
-  seed_rand(seed);
   cv::Mat heightmap;
   heightmap = cv::Mat::zeros(cv::Size(n, n), CV_32FC1);
 
@@ -76,6 +87,10 @@ cv::Mat DiamondSquare::generate(const int n, const std::array<float, 4> corners,
   heightmap.at<float>(n - 1, 0) = corners[2];
   heightmap.at<float>(n - 1, n - 1) = corners[3];
 
+  seed_rand(seed);
+//   Random random(seed);
+  // random.seed(seed);
+  // random.set_dis(0.0f, 1.0f);
   diamondSquare(heightmap, n, decay);
   if (normalized)
     cv::normalize(heightmap, heightmap, 1, 0, cv::NORM_MINMAX);
@@ -83,5 +98,14 @@ cv::Mat DiamondSquare::generate(const int n, const std::array<float, 4> corners,
 }
 
 cv::Mat DiamondSquare::generate(const int n, const float decay, int seed, bool normalized) {
-  return generate(n, {randf(), randf(), randf(), randf()}, decay);
+  //return generate(n, {randf(), randf(), randf(), randf()}, decay);
+  //std::uniform_real_distribution<float> dis(0.0f, 1.0f);
+  std::uniform_real_distribution<float> dis(0.0f, 0.1f);
+  // seed_rand(seed);
+  // Random random(seed);
+  // random.seed(seed);
+  // random.set_dis<float>(0.0f, 1.0f);
+  auto randf = [&]() { return dis(pseudo_rand_engine); };
+  return generate(n, {randf(), randf(), randf(), randf()}, decay, seed, normalized);
+  // return generate(n, { random.randf(), random.randf(), random.randf(), random.randf() }, decay, seed, normalized);
 }

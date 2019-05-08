@@ -3,7 +3,7 @@
 #include "HydraulicErosion.hpp"
 #include "DiamondSquare.hpp"
 #include "Voronoi.hpp"
-#include "common.hpp"
+// #include "common.hpp"
 
 using namespace cv;
 using namespace std;

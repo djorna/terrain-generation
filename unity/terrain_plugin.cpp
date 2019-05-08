@@ -56,12 +56,14 @@ extern "C"
     extractData(heightmap, data);
   }
 
-  void EXPORT_API VoronoiPlugin(float* data, int n, int n_points, int n_coeffs, float* coeffs)
+  void EXPORT_API VoronoiPlugin(float* data, int n, int n_points, int n_coeffs, float* coeffs,
+    int point_seed, float keep, int mask_seed, float mean, float stdev, int shift_seed)
   {
     int rows = n, cols = n;
     std::vector<float> vcoeffs(coeffs, coeffs + n_coeffs);
     Voronoi vrn = Voronoi(rows, cols, vcoeffs, n_points);
-    vrn.generatePoints(n_points, rows, cols);
+    vrn.binaryMask(keep, mask_seed);
+    vrn.shiftHeightMask(mean, stdev, shift_seed);
     cv::Mat vrn_img = vrn.generate();
     extractData(vrn_img, data);
   }
@@ -86,29 +88,17 @@ extern "C"
   void EXPORT_API MaskPlugin(float* data, int n, int n_points, int n_coeffs, float* coeffs, float persistence,
     const char* mask_file, int mask_file_len)
   {
-    // BUG: Silently failed if file does not exist
+    // BUG: Silently fails if file does not exist
     int rows = n, cols = n;
-    std::vector<float> vcoeffs(coeffs, coeffs + n_coeffs);
-    Voronoi vrn = Voronoi(rows, cols, vcoeffs, n_points);
-    cv::Mat heightmap_vrn = vrn.generate();
 
-    DiamondSquare ds;
-    cv::Mat heightmap_ds = ds.generate(n, persistence);
-
-    cv::Mat combined;
-    cv::addWeighted(heightmap_ds, 0.67, heightmap_vrn, 0.33, 0, combined);
-    cv::normalize(combined, combined, 1, 0, cv::NORM_MINMAX);
-
-    cv::imshow("combined", combined);
-    cv::waitKey(0);
+    // Convert data to cv::Mat
+    cv::Mat input_img(rows, cols, CV_32FC1, data);
 
     // Apply binary mask
-    //std::string mask_file_str = convert(mask_file, mask_file_len);
     std::string mask_file_str(mask_file);
     cv::Mat mask = cv::imread(mask_file_str, cv::IMREAD_GRAYSCALE);
     cv::Mat masked_img;
-    cv::bitwise_and(combined, combined, masked_img, mask);
-    // mask.convertTo(masked_img, CV_32F);
+    cv::bitwise_and(input_img, input_img, masked_img, mask);
 
     cv::imshow("mask", mask);
     cv::imshow("masked_img", masked_img);

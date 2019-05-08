@@ -29,14 +29,18 @@ void Voronoi::generatePoints(int n_points, int rows, int cols)
   else
     pseudo_rand_engine.seed(random_device());
   */
-  seed_rand(seed);
+  // seed_rand(seed);
 
   std::uniform_int_distribution<int> row_distribution(0, rows);
   std::uniform_int_distribution<int> col_distribution(0, cols);
+  // Random rand_row(0, rows, seed);
+  // Random rand_col(0, cols, seed);
   for (int i = 0; i < n_points; ++i)
-  {
+  {// 
     int x = col_distribution(pseudo_rand_engine);
     int y = row_distribution(pseudo_rand_engine);
+    // int x = rand_row.next<int>();
+    // int y = rand_col.next<int>();
     points.push_back(Point(x, y));
   }
 }
@@ -60,6 +64,43 @@ void Voronoi::drawPoints(cv::Mat& img)
   catch(...)
   {
     std::cerr << "Point not initialized. Run generatePoints before draw.";
+  }
+}
+
+
+void Voronoi::binaryMask(float keep, int seed)
+{
+  if (keep >= 1) return;
+  std::vector<int> indices(points.size());
+  std::iota(std::begin(indices), std::end(indices), 0); // Get numbers from 0 to n
+  // seed_rand(seed);
+  // random.seed(seed);
+  // Random random(seed);
+  // std::shuffle(indices.begin(), indices.end(), pseudo_rand_engine); // Uniformly shuffle indices
+  // random.shuffle(indices); // Uniformly shuffle indices
+  for (int i = 0; i < (1.0f - keep) * indices.size(); ++i)
+    multipliers[indices[i]] = 0;
+}
+
+
+void Voronoi::shiftHeightMask(float mean, float stdev, int seed)
+{
+  std::uniform_real_distribution<float> uniform(0, 1);
+  std::normal_distribution<float> normal(mean, stdev);
+  // random.seed(seed);
+  // Random random(seed);
+  // random.set_norm(mean, stdev);
+  // seed_rand(seed);
+  for (int i = 0; i < multipliers.size(); ++i)
+  {
+    if (multipliers[i] > 0)
+    {
+      float value = normal(pseudo_rand_engine);
+      // float value = random.randf();
+      if (value < 0) value = 0;
+      if (value > 1) value = 1;
+      multipliers[i] *= value;
+    }
   }
 }
 
@@ -100,39 +141,11 @@ cv::Mat Voronoi::generate()
       for (int c = 0; c < n_coeffs; ++c)
         pixel_value += coeffs[c] * dists.at<float>(0, c);
 
-      heatmap.at<float>(i, j) = pixel_value + multipliers[indices.at<int>(0)];
+      heatmap.at<float>(i, j) = pixel_value * multipliers[indices.at<int>(0)];
     }
   }
   
   cv::normalize(heatmap, heatmap, 1, 0, cv::NORM_MINMAX);
+
   return heatmap;
-}
-
-
-void Voronoi::binaryMask(float keep, int seed)
-{
-  if (keep >= 1) return;
-  std::vector<int> indices(points.size());
-  std::iota(std::begin(indices), std::end(indices), 0); // Get numbers from 0 to n
-  seed_rand(seed);
-  std::shuffle(indices.begin(), indices.end(), pseudo_rand_engine); // Uniformly shuffle indices
-  for (int i = 0; i < (1.0f - keep) * indices.size(); ++i)
-    multipliers[indices[i]] = 0;
-}
-
-
-void Voronoi::shiftHeightMask(float mean, float stdev)
-{
-  // std::uniform_real_distribution<float> uniform(0, 1);
-  std::normal_distribution<float> normal(mean, stdev);
-  for (int i = 0; i < multipliers.size(); ++i)
-  {
-    if (multipliers[i] > 0)
-    {
-      float value = normal(pseudo_rand_engine);
-      if (value < 0) value = 0;
-      if (value > 1) value = 1;
-      multipliers[i] *= value;
-    }
-  }
 }

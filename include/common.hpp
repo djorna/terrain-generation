@@ -7,10 +7,18 @@
 static std::random_device random_device;
 static std::mt19937 pseudo_rand_engine;
 
+// std::unique_ptr<std::uniform_real_distribution<float>> dis_float;
+
+// inline void set_dis_float(float min, float max)
+// {
+  //dis_float = std::make_unique<std::uniform_real_distribution<float>>(std::uniform_real_distribution<float>(min, max));
+// }
+
 template<typename T>
 inline T rand(const T min, const T max) { return min + static_cast <T> (rand()) / (static_cast<T>(RAND_MAX/(max - min))); }
 
 inline float randf(const float min=0, const float max=1) { return rand<float>(max, min); }
+//inline float randf() { return (*dis_float)(pseudo_rand_engine); }
 
 inline int randi(const int min, const int max) { return rand<int>(min, max); }
 

@@ -54,7 +54,7 @@ void extractData2(const cv::Mat& mat, uchar* data)
 int main(int argc, char** argv) {
   
   int x = 2; // Defauts to 2 (size of 5)
-  float persistence = 0.2; // Higher = more jagged terrain
+  float persistence = 0.5; // Higher = more jagged terrain
 
   if (argc > 1){
     int t = std::stoi(argv[1]);
@@ -72,40 +72,10 @@ int main(int argc, char** argv) {
   
   DiamondSquare diamondSquare;
 
-  auto heightmap = diamondSquare.generate(n, persistence, 1337);
+  cv::Mat heightmap = diamondSquare.generate(n, persistence, -1);
   cv::imshow("Generated terrain", heightmap);
 
-  // uchar* mat_data = heightmap.data;
-
-  cv::Mat heightmap2;
-  cv::Mat hm = heightmap * 255;
-  hm.convertTo(heightmap2, CV_8UC1);
-  namedWindow("Generated terrain 2", cv::WINDOW_NORMAL );// Create a window for display.
-  cv::resizeWindow("Generated terrain 2", 1000, 1000);
-  cv::imshow("Generated terrain 2", heightmap2);
-
-  // std::cout << heightmap << std::endl;
-  cout << "RAND_MAX / 0.6 " << RAND_MAX << " " << RAND_MAX / 0.6;
-
-  /*
-  uchar* data;
-  extractData2(heightmap2, data);
-  float* data2;
-  extractData(heightmap, data2);
-  std::cout << "---------------- floats \n";
-  std::cout << "data2:" << data2[0] << ", " << data2[1] << std::endl;
-  std::cout << "heightmap:" <<  (float)heightmap.at<float>(0, 0) << (float)heightmap.at<float>(0, 1) << std::endl;
-  */
-  
   cv::waitKey(0);
-  
-  /*
-  std::ostringstream os;
-  os << "./examples/" << n << "x" << n << ".png";
-  imwrite(os.str(), heightmap);
-
-  std::cout << "Saved image as " << os.str() << "\n";
-  */
   
   return 0;
 }

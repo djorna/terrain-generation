@@ -20,15 +20,20 @@ int main(int argc, char** argv) {
 
   //vector<float> coeffs{ -1 };
   int n_points = 10;
-  Voronoi vrn = Voronoi(rows, cols, coeffs, n_points, 1337);
+  Voronoi vrn(rows, cols, coeffs, n_points, 1337);
   Mat img;
   img = Mat::zeros(rows, cols, CV_32FC1);
   cout << "Drawing points...\n";
-  vrn.drawPoints(img);
+  // vrn.drawPoints(img);
 
   imshow("Points", img);
 
   cout << "Creating map...\n";
+  vrn.binaryMask(0.5, 2411);
+  float mean = 0.5;
+  float stdev = 0.2;
+  int shift_seed = 1231;
+  vrn.shiftHeightMask(mean, stdev, shift_seed);
   auto vrn_img = vrn.generate();
   // cv::Mat uint_img(rows, cols, CV_8UC1);
   cv::Mat uint_img;

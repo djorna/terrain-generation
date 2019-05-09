@@ -34,7 +34,7 @@ void DiamondSquare::applyDiamond(cv::Mat& heightmap, int row, int col, int k, fl
 void DiamondSquare::diamond(cv::Mat& heightmap, int k, float p) {
   int stride = k - 1;
 
-  std::uniform_real_distribution<float> dis(0.0f, 1.0f);
+  std::uniform_real_distribution<float> dis(-1.0f, 1.0f);
 
   for (int i = k / 2; i < heightmap.rows; i += stride)
     for (int j = k / 2; j < heightmap.cols; j += stride)
@@ -45,7 +45,7 @@ void DiamondSquare::diamond(cv::Mat& heightmap, int k, float p) {
 void DiamondSquare::square(cv::Mat& heightmap, int k, float p) {
   int stride = k - 1;
 
-  std::uniform_real_distribution<float> dis(0.0f, 1.0f);
+  std::uniform_real_distribution<float> dis(-1.0f, 1.0f);
   // Random random(0.0f, 1.0f, -1);
 
   for (int i = k / 2; i < heightmap.rows; i += stride)
@@ -100,7 +100,7 @@ cv::Mat DiamondSquare::generate(const int n, const std::array<float, 4> corners,
 cv::Mat DiamondSquare::generate(const int n, const float decay, int seed, bool normalized) {
   //return generate(n, {randf(), randf(), randf(), randf()}, decay);
   //std::uniform_real_distribution<float> dis(0.0f, 1.0f);
-  std::uniform_real_distribution<float> dis(0.0f, 0.1f);
+  std::uniform_real_distribution<float> dis(-1.0f, 1.0f);
   // seed_rand(seed);
   // Random random(seed);
   // random.seed(seed);

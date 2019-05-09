@@ -4,6 +4,8 @@
 #include <opencv2/opencv.hpp>
 #include <algorithm>
 
+#include <thread>
+
 // https://stackoverflow.com/questions/49482647/convert-opencv-mat-to-texture2d
 
 cv::Mat combine(std::vector<cv::Mat> images, std::vector<float> coeffs)
@@ -35,16 +37,26 @@ int main(int argc, char** argv)
   int n = pow(2, 9) + 1; // 513 x 513 image
   int rows, cols; rows = cols = n;
   float persistence = 0.5; // Higher = more jagged terrain
-  
-  DiamondSquare diamondSquare;
-  auto heightmap_ds = diamondSquare.generate(n, persistence);
+
+  cv::Mat heightmap_ds;
+  std::thread ds_thread([&] {
+    DiamondSquare diamondSquare;
+    heightmap_ds = diamondSquare.generate(n, persistence);
+  });
+  // auto heightmap_ds = diamondSquare.generate(n, persistence);
 
   int n_points = 50;
-  Voronoi vrn(rows, cols, coeffs, n_points);
-  auto heightmap_vrn = vrn.generate();
+
+  cv::Mat heightmap_vrn;
+  std::thread vrn_thread([&] {
+    Voronoi vrn(rows, cols, coeffs, n_points);
+    heightmap_vrn = vrn.generate();
+  });
 
   // cv::Mat combined = combine({ heightmap_ds, heightmap_vrn }, { 1 / 3, 2 / 3 });
   cv::Mat combined;
+  ds_thread.join();
+  vrn_thread.join();
   cv::addWeighted(heightmap_ds, 0.67, heightmap_vrn, 0.33, 0, combined);
 
   cv::normalize(combined, combined, 1, 0, cv::NORM_MINMAX);

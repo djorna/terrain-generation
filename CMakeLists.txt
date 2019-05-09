@@ -19,6 +19,7 @@ set(CORE_LIB_SOURCES
   ${PROJECT_SOURCE_DIR}/src/ThermalErosion.cpp
   ${PROJECT_SOURCE_DIR}/src/HydraulicErosion.cpp
   ${PROJECT_SOURCE_DIR}/src/Kernel.cpp
+  ${PROJECT_SOURCE_DIR}/src/SimplexNoise.cpp
 )
 
 set(TEST_SOURCES
@@ -29,6 +30,7 @@ set(TEST_SOURCES
   ${PROJECT_SOURCE_DIR}/src/tests/test_hydraulic_erosion.cpp
   ${PROJECT_SOURCE_DIR}/src/tests/test_mask.cpp
   ${PROJECT_SOURCE_DIR}/src/tests/test_random.cpp
+  ${PROJECT_SOURCE_DIR}/src/tests/test_perturb.cpp
 )
 
 # common.hpp library
@@ -69,6 +71,7 @@ if(BUILD_TESTS)
   target_link_libraries(test_hydraulic_erosion Voronoi DiamondSquare HydraulicErosion)
   target_link_libraries(test_mask Voronoi DiamondSquare)
   target_link_libraries(test_random Random)
+  target_link_libraries(test_perturb Voronoi DiamondSquare SimplexNoise)
 endif()
 
 if(BUILD_UNITY)

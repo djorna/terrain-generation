@@ -6,6 +6,8 @@
 
 #include <thread>
 
+using namespace terrain;
+
 // https://stackoverflow.com/questions/49482647/convert-opencv-mat-to-texture2d
 
 cv::Mat combine(std::vector<cv::Mat> images, std::vector<float> coeffs)

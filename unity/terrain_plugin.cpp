@@ -7,10 +7,14 @@
 #include "DiamondSquare.hpp"
 #include "Voronoi.hpp"
 #include "ThermalErosion.hpp"
+#include "Perturb.hpp"
 
 #include <opencv2/opencv.hpp>
 
 #include <fstream>
+#include <thread>
+
+using namespace terrain;
 
 /*
  * Convert char* to string
@@ -85,6 +89,43 @@ extern "C"
     extractData(combined, data);
   }
 
+  void EXPORT_API BaseTerrainPlugin(float* data, int n, int n_points, int n_coeffs, float* coeffs, float persistence,
+    float keep, float mean, float stdev, int mask_seed, int shift_seed)
+  {
+    int rows = n, cols = n;
+    // DiamondSquare
+    DiamondSquare diamondSquare;
+    cv::Mat heightmap_ds = diamondSquare.generate(n, persistence);
+
+    // Voronoi
+    std::vector<float> vcoeffs(coeffs, coeffs + n_coeffs);
+    Voronoi vrn = Voronoi(rows, cols, vcoeffs, n_points);
+    vrn.binaryMask(keep, mask_seed);
+    vrn.shiftHeightMask(mean, stdev, shift_seed);
+    cv::Mat heightmap_vrn = vrn.generate();
+
+    // Combine
+    cv::Mat combined;
+    cv::addWeighted(heightmap_ds, 0.67, heightmap_vrn, 0.33, 0, combined);
+    cv::normalize(combined, combined, 1, 0, cv::NORM_MINMAX);
+
+    // Perturbation
+    Perturb perturb_filter;
+    combined = perturb_filter.apply(combined);
+
+    extractData(combined, data);
+  }
+
+  void EXPORT_API PerturbPlugin(float* data, int rows, int cols)
+  {
+    cv::Mat input_mat(rows, cols, CV_32FC1, data);
+
+    Perturb perturb_filter;
+    cv::Mat perturbed = perturb_filter.apply(input_mat);
+
+    extractData(perturbed, data);
+  }
+
   void EXPORT_API MaskPlugin(float* data, int n, int n_points, int n_coeffs, float* coeffs, float persistence,
     const char* mask_file, int mask_file_len)
   {
@@ -116,4 +157,4 @@ extern "C"
     extractData(eroded, data);
   }
 
-}// extern "C"
+} // extern "C"

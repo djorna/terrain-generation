@@ -1,10 +1,13 @@
 #include "DiamondSquare.hpp"
 #include "Voronoi.hpp"
 #include "SimplexNoise.hpp"
+#include "Perturb.hpp"
 
 #include <opencv2/opencv.hpp>
 #include <cmath>
 #include <thread>
+
+using namespace terrain;
 
 void remove_nans(cv::Mat& img)
 {
@@ -90,7 +93,8 @@ int main(int argc, char** argv)
   example_img.convertTo(example_img_f, CV_32FC1);
   cv::normalize(example_img_f, example_img_f, 1, 0, cv::NORM_MINMAX);
   remove_nans(example_img_f);
-  cv::Mat new_img = perturb(example_img_f, mag);
+  // cv::Mat new_img = perturb(example_img_f, mag);
+  cv::Mat new_img = Perturb::apply(example_img_f, mag);
   //std::cout << SimplexNoise::noise()
 
   // Get Combined
@@ -132,7 +136,8 @@ int main(int argc, char** argv)
     cv::createTrackbar("lacunarity", "trackbars", int* value, count);
     cv::createTrackbar("persistence", "trackbars", int* value, count);
     */
-  cv::Mat terrain_pt = perturb(combined, mag);
+  //cv::Mat terrain_pt = perturb(combined, mag);
+  cv::Mat terrain_pt = Perturb::apply(combined, mag);
 
   cv::imshow("Simplex noise", heightmap);
   cv::imshow("Example Image", example_img_f);

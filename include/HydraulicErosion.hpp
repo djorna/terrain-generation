@@ -4,6 +4,9 @@
 
 #include "Kernel.hpp"
 
+namespace terrain
+{
+
 class HydraulicErosion : public Kernel
 {
 public:
@@ -36,3 +39,5 @@ private:
   int rows;
   int cols;
 };
+
+} // namespace terrain

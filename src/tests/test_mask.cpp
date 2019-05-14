@@ -9,6 +9,7 @@
 
 using namespace std;
 using namespace cv;
+using namespace terrain;
 
 void MaskPlugin(Mat& masked_img, int n, int n_points, vector<float> vcoeffs, float persistence, std::string mask_file_str)
 {

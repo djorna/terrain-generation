@@ -15,6 +15,10 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 
+
+namespace terrain
+{
+
 class DiamondSquare 
 {
 
@@ -67,7 +71,7 @@ private:
    * \param img The current elevation map.
    * \param p The current weight coefficient. 
    */
-  void applySquare(cv::Mat& heightmap, const int row, const int col, const int k, const float p);
+  void applySquare(cv::Mat& heightmap, const int row, const int col, const int k, const float offset);
 
 
   /** \brief Helper method to perform a single "diamond" operation.
@@ -78,9 +82,11 @@ private:
    * \param img The current elevation map.
    * \param p The current weight coefficient. 
    */
-  void applyDiamond(cv::Mat& heightmap, int row, int col, int k, float p);
+  void applyDiamond(cv::Mat& heightmap, const int row, const int col, const int k, const float offset);
 
   void diamondSquare(cv::Mat& heightmap, const int n, const float decay=0.5);
 
   // Random random;
 };
+
+} // namespace terrain

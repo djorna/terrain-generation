@@ -4,6 +4,9 @@
 
 #include "Kernel.hpp"
 
+namespace terrain
+{
+
 class ThermalErosion : public Kernel 
 {
   // using Point = cv::Point2i;
@@ -26,3 +29,5 @@ class ThermalErosion : public Kernel
     float magnitude = 0.5; // c
     // KernelType kernel_type;
 };
+
+} // namespace terrain

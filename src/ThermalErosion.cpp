@@ -2,6 +2,9 @@
 
 #include <iostream>
 
+namespace terrain
+{
+
 ThermalErosion::ThermalErosion() {}
 
 //ThermalErosion::ThermalErosion(KernelType kt) : kernel_type(kt) {
@@ -75,5 +78,4 @@ void ThermalErosion::apply(cv::Mat& img, int iterations)
   }
 }
 
-
-
+} // namespace terrain

@@ -20,6 +20,7 @@ set(CORE_LIB_SOURCES
   ${PROJECT_SOURCE_DIR}/src/HydraulicErosion.cpp
   ${PROJECT_SOURCE_DIR}/src/Kernel.cpp
   ${PROJECT_SOURCE_DIR}/src/SimplexNoise.cpp
+  ${PROJECT_SOURCE_DIR}/src/Perturb.cpp
 )
 
 set(TEST_SOURCES
@@ -54,6 +55,7 @@ add_library(terrain_plugin SHARED unity/terrain_plugin.cpp)
 target_link_libraries(${LIBS} ${OpenCV_LIBS} common)
 target_link_libraries(ThermalErosion Kernel)
 target_link_libraries(HydraulicErosion Kernel)
+target_link_libraries(Perturb SimplexNoise)
 
 # Add unit test executables
 if(BUILD_TESTS)
@@ -64,16 +66,16 @@ if(BUILD_TESTS)
     target_link_libraries(${test_name} ${OpenCV_LIBS})
   endforeach()
 
-  target_link_libraries(test_diamondsquare DiamondSquare )
+  target_link_libraries(test_diamondsquare DiamondSquare)
   target_link_libraries(test_voronoi Voronoi)
   target_link_libraries(test_combine Voronoi DiamondSquare)
   target_link_libraries(test_thermal_erosion Voronoi DiamondSquare ThermalErosion)
   target_link_libraries(test_hydraulic_erosion Voronoi DiamondSquare HydraulicErosion)
   target_link_libraries(test_mask Voronoi DiamondSquare)
   target_link_libraries(test_random Random)
-  target_link_libraries(test_perturb Voronoi DiamondSquare SimplexNoise)
+  target_link_libraries(test_perturb Voronoi DiamondSquare Perturb)
 endif()
 
 if(BUILD_UNITY)
-  target_link_libraries(terrain_plugin Voronoi DiamondSquare)
+  target_link_libraries(terrain_plugin Voronoi DiamondSquare Perturb)
 endif()

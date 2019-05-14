@@ -12,6 +12,9 @@
 #include <opencv2/imgproc.hpp>
 #include <unordered_map>
 
+namespace terrain
+{
+
 class Voronoi
 {
   using Point = cv::Point2i;
@@ -68,3 +71,5 @@ private:
   int shift_seed;
   // std::unordered_map<int, std::vector<Point>> region;
 };
+
+} // namespace terrain

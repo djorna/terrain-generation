@@ -4,6 +4,8 @@
 #include "DiamondSquare.hpp"
 #include "Voronoi.hpp"
 
+using namespace terrain;
+
 void imshow2(std::string windowName, cv::Mat img)
 {
   namedWindow(windowName, cv::WINDOW_NORMAL );// Create a window for display.

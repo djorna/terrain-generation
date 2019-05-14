@@ -2,11 +2,14 @@
 #include <algorithm>
 #include <iostream>
 
+namespace terrain
+{
+
 DiamondSquare::DiamondSquare() {}
 
 DiamondSquare::~DiamondSquare() {}
 
-void DiamondSquare::applySquare(cv::Mat& heightmap, const int row, const int col, const int k, const float p) {
+void DiamondSquare::applySquare(cv::Mat& heightmap, const int row, const int col, const int k, const float offset) {
   int step = k / 2;
   std::vector<float> feature_points;
   std::vector<std::vector<int>> pts = { {row, col - step}, {row, col + step}, {row - step, col}, {row + step, col } };
@@ -15,19 +18,18 @@ void DiamondSquare::applySquare(cv::Mat& heightmap, const int row, const int col
       feature_points.push_back(heightmap.at<float>(pt[0], pt[1]));
     
   // float height = average(feature_points) + randf(0, p);
-  float height = average(feature_points) + p;
+  float height = average(feature_points) + offset;
   heightmap.at<float>(row, col) = height;
 }
 
-void DiamondSquare::applyDiamond(cv::Mat& heightmap, int row, int col, int k, float p) {
+void DiamondSquare::applyDiamond(cv::Mat& heightmap, int row, int col, int k, float offset) {
   int step = k/2;
   float height = heightmap.at<float>(row - step, col - step)
-         + heightmap.at<float>(row + step, col - step)
-         + heightmap.at<float>(row - step, col + step)
-         + heightmap.at<float>(row + step, col + step);
+               + heightmap.at<float>(row + step, col - step)
+               + heightmap.at<float>(row - step, col + step)
+               + heightmap.at<float>(row + step, col + step);
   height /= 4;
-  height += p;
- // std::cout << "\np: " << p;
+  height += offset;
   heightmap.at<float>(row, col) = height;
 }
 
@@ -109,3 +111,5 @@ cv::Mat DiamondSquare::generate(const int n, const float decay, int seed, bool n
   return generate(n, {randf(), randf(), randf(), randf()}, decay, seed, normalized);
   // return generate(n, { random.randf(), random.randf(), random.randf(), random.randf() }, decay, seed, normalized);
 }
+
+} // namespace terrain

@@ -6,7 +6,7 @@
 
 using namespace cv;
 using namespace std;
-
+using namespace terrain;
 
 void extractData(cv::Mat& mat, std::vector<uchar>& array)
 {

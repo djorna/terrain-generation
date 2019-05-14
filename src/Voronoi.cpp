@@ -2,6 +2,9 @@
 
 #include <iostream>
 
+namespace terrain
+{
+
 Voronoi::Voronoi(int rows, int cols, std::vector<float> coeffs, int n_points, int seed)
   : rows(rows), cols(cols), coeffs(coeffs), seed(seed)
 {
@@ -111,7 +114,7 @@ cv::Mat Voronoi::generate()
   // http://answers.opencv.org/question/107683/how-to-use-cvflann-radiussearch-to-find-all-neighbouring-points-within-radius-r-in-2d-using-euclidean-distance/
   // https://docs.opencv.org/4.1.0/db/d18/classcv_1_1flann_1_1GenericIndex.html#a50c3ce570adfb7b19c7cda4a320a3d9e
 
-  cv::flann::SearchParams searchParams(64, 0, false);
+  cv::flann::SearchParams searchParams(128, 0, false);
   cv::flann::KDTreeIndexParams indexParams;
 
   cv::Mat_<float> features(0, 2);
@@ -123,7 +126,9 @@ cv::Mat Voronoi::generate()
     cv::Mat row = (cv::Mat_<float>(1, 2) << norm_x, norm_y);
     features.push_back(row);
   }
-  cv::flann::Index flann_index(features, cv::flann::KDTreeIndexParams(1), cvflann::EUCLIDEAN);
+  cv::flann::Index flann_index(features, cv::flann::KDTreeIndexParams(2), cvflann::EUCLIDEAN);
+
+  const float max_dist = 0.2;
 
   // Brute force approach
   for (int i = 0; i < rows; ++i)
@@ -133,13 +138,22 @@ cv::Mat Voronoi::generate()
       cv::Mat query = (cv::Mat_<float>(1, 2) << (float)j/(float)cols, (float)i/(float)rows);
       cv::Mat indices, dists;
       flann_index.knnSearch(query, indices, dists, n_coeffs, searchParams);
+      // int n_neighbours = flann_index.radiusSearch(query, indices, dists, 1, n_coeffs, searchParams);
 
       // int index_0 = indices.at<int>(0);
       // int index_1 = indices.at<int>(1);
 
       float pixel_value = 0;
-      for (int c = 0; c < n_coeffs; ++c)
+      for (int c = 0; c < n_coeffs; ++c) {
+        float dist = dists.at<float>(0, c);
+        // std::cout << dist << '\n';
+        //if (dist < max_dist)
+          pixel_value += coeffs[c] * dists.at<float>(0, c);
+      }
+      /*
+      for (int c = 0; c < n_neighbours; ++c)
         pixel_value += coeffs[c] * dists.at<float>(0, c);
+      */
 
       heatmap.at<float>(i, j) = pixel_value * multipliers[indices.at<int>(0)];
     }
@@ -149,3 +163,5 @@ cv::Mat Voronoi::generate()
 
   return heatmap;
 }
+
+} // namespace terrain

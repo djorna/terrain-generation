@@ -4,6 +4,9 @@
 
 #include <opencv2/core/core.hpp>
 
+namespace terrain
+{
+
 enum KernelType { MOORE, VON_NEUMANN, VON_NEUMANN2 };
 using Point = cv::Point2i;
 
@@ -17,3 +20,5 @@ class Kernel
   protected:
     KernelType kernel_type;
 };
+
+} // namespace terrain

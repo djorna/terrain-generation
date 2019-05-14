@@ -2,6 +2,9 @@
 
 #include <iostream>
 
+namespace terrain
+{
+
 HydraulicErosion::HydraulicErosion(KernelType kt, int rows, int cols,
   float k_rain, float k_solubility, float k_evaporation, float k_capacity)
   : rows(rows), cols(cols), k_rain(k_rain), k_solubility(k_solubility), k_evaporation(k_evaporation), k_capacity(k_capacity)
@@ -132,4 +135,4 @@ void HydraulicErosion::moveMaterial(cv::Mat& img, Point move_from, Point move_to
   img.at<float>(move_to) += amount;
 }
 
-
+} // namespace terrain

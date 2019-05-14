@@ -1,5 +1,7 @@
 #include "Kernel.hpp"
 
+namespace terrain{
+
 std::vector<Point> Kernel::neighbours(Point point, int rows, int cols)
 {
   int x = point.x;
@@ -38,3 +40,5 @@ std::vector<Point> Kernel::neighbours(Point point, int rows, int cols)
 
   return points;        
 }
+
+} // namespace terrain

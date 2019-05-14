@@ -7,6 +7,7 @@
 
 using namespace cv;
 using namespace std;
+using namespace terrain;
 
 float x, y;
 bool clicked = false;

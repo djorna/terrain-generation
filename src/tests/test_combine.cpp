@@ -33,8 +33,10 @@ int main(int argc, char** argv)
 
   // Get coeff for Voronoi
   std::vector<float> coeffs;
-  for (int i = 1; i < argc; ++i)
+  for (int i = 1; i < argc - 1; ++i)
     coeffs.push_back(std::stoi(argv[i]));
+
+  int n_points = std::stoi(argv[argc - 1]);
 
   int n = pow(2, 9) + 1; // 513 x 513 image
   int rows, cols; rows = cols = n;
@@ -46,8 +48,6 @@ int main(int argc, char** argv)
     heightmap_ds = diamondSquare.generate(n, persistence);
   });
   // auto heightmap_ds = diamondSquare.generate(n, persistence);
-
-  int n_points = 50;
 
   cv::Mat heightmap_vrn;
   std::thread vrn_thread([&] {
@@ -61,7 +61,7 @@ int main(int argc, char** argv)
   vrn_thread.join();
   cv::addWeighted(heightmap_ds, 0.67, heightmap_vrn, 0.33, 0, combined);
 
-  cv::normalize(combined, combined, 1, 0, cv::NORM_MINMAX);
+  // cv::normalize(combined, combined, 1, 0, cv::NORM_MINMAX);
 
   imshow2("ds", heightmap_ds);
   imshow2("vrn", heightmap_vrn);

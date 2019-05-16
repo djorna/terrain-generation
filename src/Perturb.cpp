@@ -16,14 +16,14 @@ cv::Mat Perturb::apply(const cv::Mat& img, float mag, Offset offset1, Offset off
     for (int j = 0; j < img.cols; ++j)
     {
       float val = img.at<float>(i, j);
-      float s = static_cast<float>(i) / (float)img.rows;
-      float t = static_cast<float>(j) / (float)img.cols;
+      float s = static_cast<float>(i) / static_cast<float>(img.rows);
+      float t = static_cast<float>(j) / static_cast<float>(img.cols);
 
       float ss = s + mag * SimplexNoise::noise(s + offset1.x, t + offset1.y, val + offset1.z);
       float tt = t + mag * SimplexNoise::noise(s + offset2.x, t + offset2.y, val+ offset2.z);
 
-      float y2 = std::min(static_cast<float>(img.rows), std::max(0.0f, ss * static_cast<float>img.rows));
-      float x2 = std::min(static_cast<float>(img.cols), std::max(0.0f, tt * static_cast<float>img.cols));
+      float y2 = std::min(static_cast<float>(img.rows), std::max(0.0f, ss * static_cast<float>(img.rows)));
+      float x2 = std::min(static_cast<float>(img.cols), std::max(0.0f, tt * static_cast<float>(img.cols)));
 
       new_img.at<float>(i, j) = getValue(img, x2, y2);
     }

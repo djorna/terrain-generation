@@ -8,6 +8,7 @@
 #include "Voronoi.hpp"
 #include "ThermalErosion.hpp"
 #include "Perturb.hpp"
+#include "Evaluator.hpp"
 
 #include <opencv2/opencv.hpp>
 
@@ -72,6 +73,7 @@ extern "C"
     extractData(vrn_img, data);
   }
 
+  /*
   void EXPORT_API CombinedPlugin(float* data, int n, int n_points, int n_coeffs, float* coeffs, float persistence)
   {
     int rows = n, cols = n;
@@ -87,6 +89,23 @@ extern "C"
     cv::normalize(combined, combined, 1, 0, cv::NORM_MINMAX);
 
     extractData(combined, data);
+  }
+  */
+
+
+  void EXPORT_API CombinedPlugin(float* data1, float* data2, float* result, int rows, int cols, float alpha)
+  {
+    // Convert data to cv::Mat
+    cv::Mat input_mat1(rows, cols, CV_32FC1, data1);
+    cv::Mat input_mat2(rows, cols, CV_32FC1, data2);
+    
+    // Combine
+    cv::Mat combined;
+    cv::addWeighted(input_mat1, alpha, input_mat2, 1 - alpha, 0, combined);
+    cv::normalize(combined, combined, 1, 0, cv::NORM_MINMAX);
+
+    // Save to first matrix
+    extractData(combined, result);
   }
 
   void EXPORT_API BaseTerrainPlugin(float* data, int n, int n_points, int n_coeffs, float* coeffs, float persistence,
@@ -116,12 +135,11 @@ extern "C"
     extractData(combined, data);
   }
 
-  void EXPORT_API PerturbPlugin(float* data, int rows, int cols)
+  void EXPORT_API PerturbPlugin(float* data, int rows, int cols, float mag)
   {
     cv::Mat input_mat(rows, cols, CV_32FC1, data);
 
-    Perturb perturb_filter;
-    cv::Mat perturbed = perturb_filter.apply(input_mat);
+    cv::Mat perturbed = Perturb::apply(input_mat, mag);
 
     extractData(perturbed, data);
   }
@@ -129,7 +147,6 @@ extern "C"
   void EXPORT_API MaskPlugin(float* data, int n, int n_points, int n_coeffs, float* coeffs, float persistence,
     const char* mask_file, int mask_file_len)
   {
-    // BUG: Silently fails if file does not exist
     int rows = n, cols = n;
 
     // Convert data to cv::Mat
@@ -146,6 +163,13 @@ extern "C"
     cv::waitKey(0);
 
     extractData(masked_img, data);
+  }
+
+  void EXPORT_API SlopePlugin(float* data, float* slope, int rows, int cols)
+  {
+    cv::Mat input_img(rows, cols, CV_32FC1, data);
+    cv::Mat slope_img = Evaluator::getSlope(input_img);
+    extractData(slope_img, slope);
   }
 
   void EXPORT_API ThermalErosionPlugin(float* data, int rows, int cols)

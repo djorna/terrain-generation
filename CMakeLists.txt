@@ -21,6 +21,7 @@ set(CORE_LIB_SOURCES
   ${PROJECT_SOURCE_DIR}/src/Kernel.cpp
   ${PROJECT_SOURCE_DIR}/src/SimplexNoise.cpp
   ${PROJECT_SOURCE_DIR}/src/Perturb.cpp
+  ${PROJECT_SOURCE_DIR}/src/Evaluator.cpp
 )
 
 set(TEST_SOURCES
@@ -32,6 +33,7 @@ set(TEST_SOURCES
   ${PROJECT_SOURCE_DIR}/src/tests/test_mask.cpp
   ${PROJECT_SOURCE_DIR}/src/tests/test_random.cpp
   ${PROJECT_SOURCE_DIR}/src/tests/test_perturb.cpp
+  ${PROJECT_SOURCE_DIR}/src/tests/test_eval.cpp
 )
 
 # common.hpp library
@@ -56,6 +58,7 @@ target_link_libraries(${LIBS} ${OpenCV_LIBS} common)
 target_link_libraries(ThermalErosion Kernel)
 target_link_libraries(HydraulicErosion Kernel)
 target_link_libraries(Perturb SimplexNoise)
+target_link_libraries(Evaluator Kernel)
 
 # Add unit test executables
 if(BUILD_TESTS)
@@ -74,6 +77,7 @@ if(BUILD_TESTS)
   target_link_libraries(test_mask Voronoi DiamondSquare)
   target_link_libraries(test_random Random)
   target_link_libraries(test_perturb Voronoi DiamondSquare Perturb)
+  target_link_libraries(test_eval Voronoi DiamondSquare Perturb Evaluator)
 endif()
 
 if(BUILD_UNITY)

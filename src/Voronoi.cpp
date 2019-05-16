@@ -79,16 +79,18 @@ void Voronoi::binaryMask(float keep, int seed)
   // seed_rand(seed);
   // random.seed(seed);
   // Random random(seed);
-  // std::shuffle(indices.begin(), indices.end(), pseudo_rand_engine); // Uniformly shuffle indices
+  seed_rand(seed);
+  std::shuffle(indices.begin(), indices.end(), pseudo_rand_engine); // Uniformly shuffle indices
   // random.shuffle(indices); // Uniformly shuffle indices
-  for (int i = 0; i < (1.0f - keep) * indices.size(); ++i)
+  for (int i = 0; i < (1.0f - keep) * static_cast<float>(indices.size()); ++i)
     multipliers[indices[i]] = 0;
 }
 
 
 void Voronoi::shiftHeightMask(float mean, float stdev, int seed)
 {
-  std::uniform_real_distribution<float> uniform(0, 1);
+  seed_rand(seed);
+  // std::uniform_real_distribution<float> uniform(0, 1);
   std::normal_distribution<float> normal(mean, stdev);
   // random.seed(seed);
   // Random random(seed);
@@ -103,6 +105,10 @@ void Voronoi::shiftHeightMask(float mean, float stdev, int seed)
       if (value < 0) value = 0;
       if (value > 1) value = 1;
       multipliers[i] *= value;
+    }
+    else
+    {
+      pseudo_rand_engine.discard(1);
     }
   }
 }

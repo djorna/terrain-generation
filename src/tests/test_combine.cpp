@@ -10,16 +10,6 @@ using namespace terrain;
 
 // https://stackoverflow.com/questions/49482647/convert-opencv-mat-to-texture2d
 
-cv::Mat combine(std::vector<cv::Mat> images, std::vector<float> coeffs)
-{
-  assert(images.size() == images.size());
-  assert(std::accumulate(coeffs) == 1);
-  cv::Mat result = cv::Mat::zeros(images[0].rows, images[0].cols, CV_32FC1);
-  for (int i = 0; i < images.size(); ++i)
-    result += images[i] * coeffs[i];
-
-  return result;
-}
 
 void imshow2(std::string windowName, cv::Mat img)
 {

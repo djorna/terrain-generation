@@ -4,6 +4,7 @@
 #include <opencv2/opencv.hpp>
 
 using namespace std;
+using namespace std::chrono;
 using namespace cv;
 using namespace terrain;
 
@@ -21,13 +22,17 @@ int main(int argc, char** argv) {
 
   int n_points = stoi(argv[argc - 1]);
   //vector<float> coeffs{ -1 };
+  auto start = high_resolution_clock::now(); 
   Voronoi vrn(rows, cols, coeffs, n_points, 1337);
-  Mat img;
-  img = Mat::zeros(rows, cols, CV_32FC1);
+  auto constructed = high_resolution_clock::now();
+  auto vrn_img = vrn.generate();
+  auto generated = high_resolution_clock::now();
+  Mat points_img;
+  points_img = Mat::zeros(rows, cols, CV_32FC1);
   cout << "Drawing points...\n";
-  vrn.drawPoints(img);
+  vrn.drawPoints(points_img);
 
-  imshow("Points", img);
+  imshow("Points", points_img);
 
   cout << "Creating map...\n";
   // vrn.binaryMask(0.5, 2411);
@@ -35,19 +40,15 @@ int main(int argc, char** argv) {
   float stdev = 0.2;
   int shift_seed = 1231;
   // vrn.shiftHeightMask(mean, stdev, shift_seed);
-  auto vrn_img = vrn.generate();
-  // cv::Mat uint_img(rows, cols, CV_8UC1);
-  cv::Mat uint_img;
-  // vrn_img *= 10;
-  vrn_img.convertTo(uint_img, CV_8UC1);
-  for (int i = 0; i < rows; ++i)
-    for (int j = 0; j < cols; ++j)
-      uint_img.at<uchar>(i, j) = vrn_img.at<float>(i, j) * 255;
+  
+  auto duration1 = duration_cast<milliseconds>(constructed - start); 
+  auto duration2 = duration_cast<milliseconds>(generated - constructed); 
+  std::cout << " Duration (get points): " << duration1.count() << " milliseconds\n";
+  std::cout << " Duration (knn): " << duration2.count() << " milliseconds\n";
 
   cout << "Creating window" << endl;
   namedWindow("Voronoi", WINDOW_AUTOSIZE);
   imshow("Voronoi", vrn_img);
-  imshow("Voronoi2", uint_img);
 
   waitKey(0);
 

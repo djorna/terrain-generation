@@ -1,6 +1,9 @@
 #include "Voronoi.hpp"
 
-#include <iostream>
+#include <opencv2/flann/defines.h>
+#include <opencv2/flann/flann_base.hpp>
+#include <opencv2/flann/kdtree_single_index.h>
+#include <opencv2/flann/dist.h>
 
 namespace terrain
 {
@@ -9,14 +12,12 @@ Voronoi::Voronoi(int rows, int cols, std::vector<float> coeffs, int n_points, in
   : rows(rows), cols(cols), coeffs(coeffs), seed(seed)
 {
   generatePoints(n_points, rows, cols);
-  n_coeffs = coeffs.size();
   multipliers.resize(n_points, 1);
 }
 
 Voronoi::Voronoi(int rows, int cols, std::vector<float> coeffs, PointList points, int seed)
   : rows(rows), cols(cols), coeffs(coeffs), points(points), seed(seed)
 {
-  n_coeffs = coeffs.size();
   multipliers.resize(points.size(), 1);
 }
 
@@ -45,6 +46,8 @@ void Voronoi::generatePoints(int n_points, int rows, int cols)
     // int x = rand_row.next<int>();
     // int y = rand_col.next<int>();
     points.push_back(Point(x, y));
+    points_norm.push_back(static_cast<float>(x) / cols);
+    points_norm.push_back(static_cast<float>(y) / rows);
   }
 }
 
@@ -53,20 +56,19 @@ void Voronoi::drawPoints(cv::Mat& img)
 {
   if (img.type() != CV_32FC1)
   {
-    std::cerr << "Wrong image type required: CV_32FC1";
+    std::cerr << "Wrong image type. Required: CV_32FC1";
     return;
   }
   try 
   {
     for (Point point : points)
     {
-      std::cout << "Point:" << point << std::endl;
       img.at<float>(point.y, point.x) = 1;
     }
   }
   catch(...)
   {
-    std::cerr << "Point not initialized. Run generatePoints before draw.";
+    std::cerr << "Point not initialized. Run generatePoints() before draw().";
   }
 }
 
@@ -117,51 +119,41 @@ cv::Mat Voronoi::generate()
 {
   heatmap = cv::Mat::zeros(rows, cols, CV_32FC1);
 
-  // http://answers.opencv.org/question/107683/how-to-use-cvflann-radiussearch-to-find-all-neighbouring-points-within-radius-r-in-2d-using-euclidean-distance/
-  // https://docs.opencv.org/4.1.0/db/d18/classcv_1_1flann_1_1GenericIndex.html#a50c3ce570adfb7b19c7cda4a320a3d9e
+  cvflann::SearchParams searchParams(1, 0.5, false);
+  cvflann::KDTreeSingleIndexParams indexParams(10);
 
-  cv::flann::SearchParams searchParams(128, 0, false);
-  cv::flann::KDTreeIndexParams indexParams;
+  cvflann::Matrix<float> features(&points_norm[0], points.size(), 2);
 
-  cv::Mat_<float> features(0, 2);
+  // Construct ad KD-Tree using squared euclidean distance (L2)
+  cvflann::KDTreeSingleIndex<cvflann::L2_Simple<float>> flann_index(features, indexParams);
+  // cvflann::Index<cvflann::L2_Simple<float>> flann_index(features, indexParams);
+  flann_index.buildIndex(); // Why is this not part of the constructor??
 
-  for (auto && point : points) {
-    //Fill matrix
-    float norm_x = static_cast<float>(point.x) / cols;
-    float norm_y = static_cast<float>(point.y) / rows;
-    cv::Mat row = (cv::Mat_<float>(1, 2) << norm_x, norm_y);
-    features.push_back(row);
-  }
-  cv::flann::Index flann_index(features, cv::flann::KDTreeIndexParams(2), cvflann::EUCLIDEAN);
+  std::vector<float> query_data = { 0, 0 };
+  cvflann::Matrix<float> query(&query_data[0], 1, 2); // rows: query #, col: ith nearest neighbour
 
-  const float max_dist = 0.2;
+  const int knn = coeffs.size();
 
-  // Brute force approach
+  std::vector<int> indices_data(query.rows * knn, 0);
+  cvflann::Matrix<int> indices(&indices_data[0], query.rows, knn); // rows: query #, col: ith nearest neighbour
+  std::vector<float> dists_data(query.rows * knn, 0);
+  cvflann::Matrix<float> dists(&dists_data[0], query.rows, knn); // rows: query #, col: ith nearest neighbour
+
+  flann_index.knnSearch(query, indices, dists, knn, searchParams);
+
   for (int i = 0; i < rows; ++i)
   {
     for (int j = 0; j < cols; ++j)
     {
-      cv::Mat query = (cv::Mat_<float>(1, 2) << (float)j/(float)cols, (float)i/(float)rows);
-      cv::Mat indices, dists;
-      flann_index.knnSearch(query, indices, dists, n_coeffs, searchParams);
-      // int n_neighbours = flann_index.radiusSearch(query, indices, dists, 1, n_coeffs, searchParams);
-
-      // int index_0 = indices.at<int>(0);
-      // int index_1 = indices.at<int>(1);
+      query_data = { static_cast<float>(j) / cols, static_cast<float>(i) / rows };
+      flann_index.knnSearch(query, indices, dists, knn, searchParams);
 
       float pixel_value = 0;
-      for (int c = 0; c < n_coeffs; ++c) {
-        float dist = dists.at<float>(0, c);
-        // std::cout << dist << '\n';
-        //if (dist < max_dist)
-          pixel_value += coeffs[c] * dists.at<float>(0, c);
+      for (int c = 0; c < coeffs.size(); ++c) {
+        pixel_value += coeffs[c] * dists[0][c];
       }
-      /*
-      for (int c = 0; c < n_neighbours; ++c)
-        pixel_value += coeffs[c] * dists.at<float>(0, c);
-      */
 
-      heatmap.at<float>(i, j) = pixel_value * multipliers[indices.at<int>(0)];
+      heatmap.at<float>(i, j) = pixel_value * multipliers[indices[0][0]];
     }
   }
   

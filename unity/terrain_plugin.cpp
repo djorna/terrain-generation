@@ -44,20 +44,10 @@ void extractData(const cv::Mat& mat, T* data)
 extern "C"
 {
 
-  void EXPORT_API DiamondSquarePlugin(uchar *data, int n, float persistence)
+  void EXPORT_API DiamondSquarePlugin(float *data, int n, float persistence, int seed)
   {
     DiamondSquare diamondSquare;
-    cv::Mat heightmap = diamondSquare.generate(n, persistence);
-    cv::Mat heightmap2;
-    heightmap *= 255;
-    heightmap.convertTo(heightmap2, CV_8UC1);
-    extractData(heightmap2, data);
-  }
-
-  void EXPORT_API DiamondSquarePluginFloat(float *data, int n, float persistence)
-  {
-    DiamondSquare diamondSquare;
-    cv::Mat heightmap = diamondSquare.generate(n, persistence);
+    cv::Mat heightmap = diamondSquare.generate(n, persistence, seed);
     extractData(heightmap, data);
   }
 

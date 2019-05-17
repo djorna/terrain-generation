@@ -1,16 +1,10 @@
 #pragma once
 
 #include "common.hpp"
-#include "Random.hpp"
+// #include "Random.hpp"
 
 #include <opencv2/core/core.hpp>
-#include <opencv2/flann/miniflann.hpp>
-#include <opencv2/flann/kdtree_index.h>
-#include <opencv2/highgui.hpp>
 #include <random>
-#include <iostream>
-#include <opencv2/imgproc.hpp>
-#include <unordered_map>
 
 namespace terrain
 {
@@ -58,11 +52,10 @@ private:
 
   cv::Mat heatmap;
   PointList points;
+  std::vector<float> points_norm; // Points normalized between 0 and 1
   std::vector<float> coeffs;
   std::vector<float> multipliers;
   // Random random;
-  int n_coeffs;
-  int n_points;
   int rows;
   int cols;
   int seed;

@@ -1,6 +1,7 @@
 #include "ThermalErosion.hpp"
 
 #include <iostream>
+#include <queue>
 
 namespace terrain
 {
@@ -32,7 +33,7 @@ void ThermalErosion::operation(cv::Mat& img, Point center, std::vector<Point> ne
   for (Point p : neighbours)
   {
     float diff = center_height - img.at<float>(p);
-    if (diff > talus_angle)
+    if (diff > talus_angle)  
     {
       if (diff > diff_max) diff_max = diff;
       diff_total += diff;

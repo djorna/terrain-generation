@@ -1,6 +1,7 @@
 *.pdf
 .vscode
 build
+build-debug
 env
 SimplestPluginExample-4.0
 SimplexNoise

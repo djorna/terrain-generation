@@ -5,6 +5,8 @@
 #include <opencv2/flann/kdtree_single_index.h>
 #include <opencv2/flann/dist.h>
 
+#include <omp.h> // OpenMP for multithreading
+
 namespace terrain
 {
 
@@ -129,23 +131,48 @@ cv::Mat Voronoi::generate()
   // cvflann::Index<cvflann::L2_Simple<float>> flann_index(features, indexParams);
   flann_index.buildIndex(); // Why is this not part of the constructor??
 
-  std::vector<float> query_data = { 0, 0 };
-  cvflann::Matrix<float> query(&query_data[0], 1, 2); // rows: query #, col: ith nearest neighbour
-
   const int knn = coeffs.size();
 
+
+  cvflann::Matrix<float> query;
+  query.rows = 1;
+  query.cols = 2;
+  /*
+  std::vector<float> query_data = { 0, 0 };
+  cvflann::Matrix<float> query(&query_data[0], 1, 2); // rows: query #, col: ith nearest neighbour
   std::vector<int> indices_data(query.rows * knn, 0);
   cvflann::Matrix<int> indices(&indices_data[0], query.rows, knn); // rows: query #, col: ith nearest neighbour
   std::vector<float> dists_data(query.rows * knn, 0);
   cvflann::Matrix<float> dists(&dists_data[0], query.rows, knn); // rows: query #, col: ith nearest neighbour
+  */
+  // std::vector<int> indices_data(query.rows * knn, 0);
+  cvflann::Matrix<int> indices; // rows: query #, col: ith nearest neighbour
+  indices.rows = query.rows;
+  indices.cols = query.cols;
+  cvflann::Matrix<float> dists; // rows: query #, col: ith nearest neighbour
+  dists.rows = query.rows;
+  dists.cols = query.cols;
 
-  flann_index.knnSearch(query, indices, dists, knn, searchParams);
-
+#pragma omp parallel for num_threads(2) firstprivate(indices, dists, query)
   for (int i = 0; i < rows; ++i)
   {
     for (int j = 0; j < cols; ++j)
     {
-      query_data = { static_cast<float>(j) / cols, static_cast<float>(i) / rows };
+      // query_data = { static_cast<float>(j) / cols, static_cast<float>(i) / rows };
+      /*
+      std::vector<float> query_data = { static_cast<float>(j) / cols, static_cast<float>(i) / rows };
+      cvflann::Matrix<float> query(&query_data[0], 1, 2); // rows: query #, col: ith nearest neighbour
+      std::vector<int> indices_data(query.rows * knn, 0);
+      cvflann::Matrix<int> indices(&indices_data[0], query.rows, knn); // rows: query #, col: ith nearest neighbour
+      std::vector<float> dists_data(query.rows * knn, 0);
+      cvflann::Matrix<float> dists(&dists_data[0], query.rows, knn); // rows: query #, col: ith nearest neighbour
+      */
+      float query_data[2] = { static_cast<float>(j) / cols, static_cast<float>(i) / rows };
+      query.data = &query_data[0];
+      std::vector<int> indices_data(knn, 0);
+      indices.data = &indices_data[0];
+      std::vector<float> dists_data(query.rows * knn, 0);
+      dists.data = &dists_data[0];
       flann_index.knnSearch(query, indices, dists, knn, searchParams);
 
       float pixel_value = 0;

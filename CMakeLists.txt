@@ -37,6 +37,7 @@ set(CORE_LIB_SOURCES
   ${PROJECT_SOURCE_DIR}/src/Voronoi.cpp
   ${PROJECT_SOURCE_DIR}/src/ThermalErosion.cpp
   ${PROJECT_SOURCE_DIR}/src/HydraulicErosion.cpp
+  ${PROJECT_SOURCE_DIR}/src/FastErosion.cpp
   ${PROJECT_SOURCE_DIR}/src/Kernel.cpp
   ${PROJECT_SOURCE_DIR}/src/SimplexNoise.cpp
   ${PROJECT_SOURCE_DIR}/src/Perturb.cpp
@@ -53,6 +54,7 @@ set(TEST_SOURCES
   ${PROJECT_SOURCE_DIR}/src/tests/test_random.cpp
   ${PROJECT_SOURCE_DIR}/src/tests/test_perturb.cpp
   ${PROJECT_SOURCE_DIR}/src/tests/test_eval.cpp
+  ${PROJECT_SOURCE_DIR}/src/tests/test_fast_erosion.cpp
 )
 
 # common.hpp library
@@ -76,6 +78,7 @@ add_library(terrain_plugin SHARED unity/terrain_plugin.cpp)
 target_link_libraries(${LIBS} ${OpenCV_LIBS} common)
 target_link_libraries(ThermalErosion Kernel)
 target_link_libraries(HydraulicErosion Kernel)
+target_link_libraries(FastErosion Kernel)
 target_link_libraries(Perturb SimplexNoise)
 target_link_libraries(Evaluator Kernel)
 
@@ -97,6 +100,7 @@ if(BUILD_TESTS)
   target_link_libraries(test_random Random)
   target_link_libraries(test_perturb Voronoi DiamondSquare Perturb)
   target_link_libraries(test_eval Voronoi DiamondSquare Perturb Evaluator)
+  target_link_libraries(test_fast_erosion Voronoi DiamondSquare FastErosion)
 endif()
 
 if(BUILD_UNITY)

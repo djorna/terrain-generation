@@ -7,6 +7,7 @@
 
 #include <omp.h> // OpenMP for multithreading
 
+
 namespace terrain
 {
 
@@ -128,53 +129,36 @@ cv::Mat Voronoi::generate()
 
   // Construct ad KD-Tree using squared euclidean distance (L2)
   cvflann::KDTreeSingleIndex<cvflann::L2_Simple<float>> flann_index(features, indexParams);
-  // cvflann::Index<cvflann::L2_Simple<float>> flann_index(features, indexParams);
   flann_index.buildIndex(); // Why is this not part of the constructor??
 
   const int knn = coeffs.size();
 
-
   cvflann::Matrix<float> query;
   query.rows = 1;
-  query.cols = 2;
-  /*
-  std::vector<float> query_data = { 0, 0 };
-  cvflann::Matrix<float> query(&query_data[0], 1, 2); // rows: query #, col: ith nearest neighbour
-  std::vector<int> indices_data(query.rows * knn, 0);
-  cvflann::Matrix<int> indices(&indices_data[0], query.rows, knn); // rows: query #, col: ith nearest neighbour
-  std::vector<float> dists_data(query.rows * knn, 0);
-  cvflann::Matrix<float> dists(&dists_data[0], query.rows, knn); // rows: query #, col: ith nearest neighbour
-  */
-  // std::vector<int> indices_data(query.rows * knn, 0);
+  query.cols = 2; 
   cvflann::Matrix<int> indices; // rows: query #, col: ith nearest neighbour
-  indices.rows = query.rows;
-  indices.cols = query.cols;
+  indices.rows = 1;
+  indices.cols = knn;
   cvflann::Matrix<float> dists; // rows: query #, col: ith nearest neighbour
-  dists.rows = query.rows;
-  dists.cols = query.cols;
+  dists.rows = 1;
+  dists.cols = knn;
+  std::array<float, 2> query_data;
+  std::vector<int> indices_data(knn);
+  std::vector<float> dists_data(knn);
 
-#pragma omp parallel for num_threads(2) firstprivate(indices, dists, query)
+#pragma omp parallel for num_threads(4) firstprivate(indices, dists, query, indices_data, dists_data, query_data)
   for (int i = 0; i < rows; ++i)
   {
     for (int j = 0; j < cols; ++j)
     {
-      // query_data = { static_cast<float>(j) / cols, static_cast<float>(i) / rows };
-      /*
-      std::vector<float> query_data = { static_cast<float>(j) / cols, static_cast<float>(i) / rows };
-      cvflann::Matrix<float> query(&query_data[0], 1, 2); // rows: query #, col: ith nearest neighbour
-      std::vector<int> indices_data(query.rows * knn, 0);
-      cvflann::Matrix<int> indices(&indices_data[0], query.rows, knn); // rows: query #, col: ith nearest neighbour
-      std::vector<float> dists_data(query.rows * knn, 0);
-      cvflann::Matrix<float> dists(&dists_data[0], query.rows, knn); // rows: query #, col: ith nearest neighbour
-      */
-      float query_data[2] = { static_cast<float>(j) / cols, static_cast<float>(i) / rows };
+      query_data = { static_cast<float>(j) / cols, static_cast<float>(i) / rows };
       query.data = &query_data[0];
-      std::vector<int> indices_data(knn, 0);
       indices.data = &indices_data[0];
-      std::vector<float> dists_data(query.rows * knn, 0);
       dists.data = &dists_data[0];
+
       flann_index.knnSearch(query, indices, dists, knn, searchParams);
 
+      // Multiply nearest neighbours by their respective coefficients
       float pixel_value = 0;
       for (int c = 0; c < coeffs.size(); ++c) {
         pixel_value += coeffs[c] * dists[0][c];
@@ -190,3 +174,4 @@ cv::Mat Voronoi::generate()
 }
 
 } // namespace terrain
+

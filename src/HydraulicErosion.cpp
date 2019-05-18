@@ -10,8 +10,8 @@ HydraulicErosion::HydraulicErosion(KernelType kt, int rows, int cols,
   : rows(rows), cols(cols), k_rain(k_rain), k_solubility(k_solubility), k_evaporation(k_evaporation), k_capacity(k_capacity)
 {
   kernel_type = kt;
-  watermap = cv::Mat(rows, cols, CV_32FC1, 0.0);
-  sedimentmap = cv::Mat(rows, cols, CV_32FC1, 0.0);
+  watermap = cv::Mat::zeros(rows, cols, CV_32FC1);
+  sedimentmap = cv::Mat::zeros(rows, cols, CV_32FC1);
 }
 
 HydraulicErosion::~HydraulicErosion() {}
@@ -19,12 +19,14 @@ HydraulicErosion::~HydraulicErosion() {}
 void HydraulicErosion::apply(cv::Mat& img, const int iterations)
 {
   heightmap = img;
+  std::cout << "starting...\n";
   for (int pass = 0; pass < iterations; ++pass)
   {
     rain();
     erosion();
     transfer();
-    // evaporate();
+    evaporate();
+    std::cout << "Iteration " << pass << " finished.\n";
   }
 }
 
@@ -65,10 +67,6 @@ void HydraulicErosion::transfer()
       float h = heightmap.at<float>(center);
       float m = sedimentmap.at<float>(center);
       float a = h + w;
-      if (w > 1000) {
-        //std::cout << i << ',' << j << ',' << center;
-        //std::cout << w << '\n';
-      }
       std::vector<float> dlist;
       std::vector<float> alist;
       auto nbs = neighbours(center, rows, cols);

@@ -4,6 +4,8 @@
 #include "DiamondSquare.hpp"
 #include "Voronoi.hpp"
 
+using namespace std;
+using namespace std::chrono;
 using namespace terrain;
 
 void imshow2(std::string windowName, cv::Mat img)
@@ -16,9 +18,8 @@ void imshow2(std::string windowName, cv::Mat img)
 int main(int argc, char** argv)
 {
  // Get coeff for Voronoi
-  std::vector<float> coeffs;
-  for (int i = 1; i < argc; ++i)
-    coeffs.push_back(std::stoi(argv[i]));
+  std::vector<float> coeffs{ -1, 1 };
+  int iterations = std::stoi(argv[1]);
 
   int n = pow(2, 9) + 1; // 513 x 513 image
   int rows, cols; rows = cols = n;
@@ -39,8 +40,14 @@ int main(int argc, char** argv)
   ThermalErosion thermal(MOORE);
   cv::Mat eroded;
   combined.copyTo(eroded);
-  thermal.apply(eroded);
+  cout << "Starting...\n";
+  auto start = high_resolution_clock::now(); 
+  thermal.apply(eroded, iterations);
+  auto end = high_resolution_clock::now(); 
   cv::normalize(eroded, eroded, 1, 0, cv::NORM_MINMAX);
+
+  auto duration = duration_cast<milliseconds>(end - start); 
+  cout << iterations << " iterations took " << duration.count() << " milliseconds.\n";
 
   imshow2("Base", combined);
   imshow2("Eroded", eroded);

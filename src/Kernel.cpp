@@ -1,5 +1,7 @@
 #include "Kernel.hpp"
 
+#include <algorithm>
+
 namespace terrain{
 
 
@@ -30,13 +32,17 @@ std::vector<Point> Kernel::neighbours(Point point, int rows, int cols)
         break;
   };
 
-  // Cull outlier points
+  // Cull outlier points (unnessesarily opaque code)
+  points.erase(std::remove_if(points.begin(), points.end(),
+    [&](Point p) { return !pointInRange(p.y, p.x, rows, cols);  }), points.end());
+  /*
   for (auto it = points.begin(); it != points.end(); ) {
     if(!pointInRange(it->y, it->x, rows, cols))
       points.erase(it);
     else
       ++it;
   }
+   */
 
   return points;        
 }

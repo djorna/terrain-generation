@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <queue>
+#include <omp.h> // OpenMP for multithreading
 
 namespace terrain
 {
@@ -53,8 +54,10 @@ void ThermalErosion::operation(cv::Mat& img, Point center, std::vector<Point> ne
 
 void ThermalErosion::apply(cv::Mat& img, int iterations)
 {
-  for (int pass; pass < iterations; ++pass)
+  for (int pass = 0; pass < iterations; ++pass)
   {
+    //std::cout << "Pass # " << pass << '\n';
+#pragma omp parallel for num_threads(8)
     for (int i = 0; i < img.rows; ++i)
     {
       for (int j = 0; j < img.cols; ++j)

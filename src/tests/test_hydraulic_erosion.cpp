@@ -21,12 +21,10 @@ void imshow2(std::string windowName, cv::Mat img)
 
 int main(int argc, char** argv)
 {
- // Get coeff for Voronoi
-  std::vector<float> coeffs;
-  for (int i = 1; i < argc - 1; ++i)
-    coeffs.push_back(std::stoi(argv[i]));
+  int iterations = std::stoi(argv[1]);
 
-  int iterations = std::stoi(argv[argc-1]);
+ // Get coeff for Voronoi
+  std::vector<float> coeffs{ -1, 1 };
 
   int n = pow(2, 9) + 1; // 513 x 513 image
   int rows, cols; rows = cols = n;

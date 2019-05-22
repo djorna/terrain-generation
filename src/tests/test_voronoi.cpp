@@ -25,6 +25,7 @@ int main(int argc, char** argv) {
   auto start = high_resolution_clock::now(); 
   Voronoi vrn(rows, cols, coeffs, n_points, 1337);
   auto constructed = high_resolution_clock::now();
+  // vrn.binaryMask(1, 2411);
   auto vrn_img = vrn.generate();
   auto generated = high_resolution_clock::now();
   Mat points_img;
@@ -35,7 +36,6 @@ int main(int argc, char** argv) {
   imshow("Points", points_img);
 
   cout << "Creating map...\n";
-  // vrn.binaryMask(0.5, 2411);
   float mean = 0.5;
   float stdev = 0.2;
   int shift_seed = 1231;

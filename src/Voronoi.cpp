@@ -5,22 +5,25 @@
 #include <opencv2/flann/kdtree_single_index.h>
 #include <opencv2/flann/dist.h>
 
+#include <opencv2/imgproc.hpp>
+
 #include <omp.h> // OpenMP for multithreading
 
 #include <numeric>
+#include <cmath>
 
 
 namespace terrain
 {
 
-Voronoi::Voronoi(int rows, int cols, std::vector<float> coeffs, int n_points, int seed)
+Voronoi::Voronoi(int rows, int cols, std::vector<float> coeffs, int n_points, int seed, bool regularize)
   : rows(rows), cols(cols), coeffs(coeffs), seed(seed)
 {
   generatePoints(n_points, rows, cols);
   multipliers.resize(n_points, 1);
 }
 
-Voronoi::Voronoi(int rows, int cols, std::vector<float> coeffs, PointList points, int seed)
+Voronoi::Voronoi(int rows, int cols, std::vector<float> coeffs, PointList points, int seed, bool regularize)
   : rows(rows), cols(cols), coeffs(coeffs), points(points), seed(seed)
 {
   multipliers.resize(points.size(), 1);
@@ -28,37 +31,48 @@ Voronoi::Voronoi(int rows, int cols, std::vector<float> coeffs, PointList points
 
 Voronoi::~Voronoi() {}
 
-void Voronoi::generatePoints(int n_points, int rows, int cols)
+void Voronoi::generatePoints(int n_points, int rows, int cols, bool regularize)
 {
-  // std::random_device random_device;
-  // std::mt19937 pseudo_rand_engine;
-  /*
-  if (seed > 0)
-    pseudo_rand_engine.seed(seed);
-  else
-    pseudo_rand_engine.seed(random_device());
-  */
-  // seed_rand(seed);
-
   std::uniform_int_distribution<int> dist(0, rows * cols - 1);
 
-  // Random rand_row(0, rows, seed);
-  // Random rand_col(0, cols, seed);
-  for (int i = 0; i < n_points; ++i)
+  if (regularize)
   {
-    int index = dist(pseudo_rand_engine);
-    int x = index % cols;
-    int y = index / cols;
-    // int x = rand_row.next<int>();
-    // int y = rand_col.next<int>();
-    points.push_back(Point(x, y));
-    points_norm.push_back(static_cast<float>(x) / cols);
-    points_norm.push_back(static_cast<float>(y) / rows);
+    cv::Mat occupied(rows, cols, CV_8UC1, cv::Scalar(0));
+    int n_x = sqrt(n_points * cols / rows);
+    int max_dist = 0.8 * cols / (n_x + 1); // Heuristic for maximum peak distance 
+
+    for (int i = 0; i < n_points; ++i)
+    {
+      int x, y;
+      // Generate points until one is accepted
+      do {
+        int index = dist(pseudo_rand_engine);
+        x = index % cols;
+        y = index / cols;
+      } while (occupied.at<uchar>(y, x));
+
+      points.push_back(Point(x, y));
+      points_norm.push_back(static_cast<float>(x) / cols);
+      points_norm.push_back(static_cast<float>(y) / rows);
+
+      cv::circle(occupied, Point(x, y), max_dist, 1, cv::FILLED);
+    }
+  }
+  else 
+  {
+    for (int i = 0; i < n_points; ++i)
+    {
+      int index = dist(pseudo_rand_engine);
+      int x = index % cols;
+      int y = index / cols;
+      points.push_back(Point(x, y));
+      points_norm.push_back(static_cast<float>(x) / cols);
+      points_norm.push_back(static_cast<float>(y) / rows);
+    }
   }
 }
 
-
-void Voronoi::drawPoints(cv::Mat& img)
+void Voronoi::drawPoints(cv::Mat& img) const
 {
   if (img.type() != CV_32FC1)
   {
@@ -125,7 +139,7 @@ cv::Mat Voronoi::generate()
 {
   heatmap = cv::Mat::zeros(rows, cols, CV_32FC1);
 
-  cvflann::SearchParams searchParams(1, 0.5, false);
+  cvflann::SearchParams searchParams(32, 0, false);
   cvflann::KDTreeSingleIndexParams indexParams(10);
 
   cvflann::Matrix<float> features(&points_norm[0], points.size(), 2);
@@ -166,8 +180,8 @@ cv::Mat Voronoi::generate()
       for (int c = 0; c < coeffs.size(); ++c) {
         pixel_value += coeffs[c] * dists[0][c];
       }
-
-      heatmap.at<float>(i, j) = pixel_value * multipliers[indices[0][0]];
+      pixel_value *= multipliers[indices[0][0]];
+      heatmap.at<float>(i, j) = pixel_value;
     }
   }
   

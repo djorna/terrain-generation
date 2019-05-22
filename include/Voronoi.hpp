@@ -14,12 +14,12 @@ class Voronoi
   using PointList = std::vector<Point>;
 
 public:
-  Voronoi(int rows, int cols, std::vector<float> coeffs, int n_points, int seed=-1);
+  Voronoi(int rows, int cols, std::vector<float> coeffs, int n_points, int seed=-1, bool regularize=true);
 
   /**
    * Initialize Voronoi diagram
    */
-  Voronoi(int rows, int cols, std::vector<float> coeffs, PointList points, int seed=-1);
+  Voronoi(int rows, int cols, std::vector<float> coeffs, PointList points, int seed=-1, bool regularize=true);
 
   ~Voronoi();
 
@@ -28,7 +28,7 @@ public:
 
   // void setCoeffs(std::vector<float> new_coeffs);
 
-  void drawPoints(cv::Mat& img);
+  void drawPoints(cv::Mat& img) const;
 
   cv::Mat generate();
 
@@ -54,7 +54,7 @@ public:
   void widenGaps(cv::Mat& img, float magnitude);
 
 private:
-  void generatePoints(int n_points, int rows, int cols);
+  void generatePoints(int n_points, int rows, int cols, bool regularize=true);
 
   cv::Mat heatmap;
   PointList points;

@@ -2,15 +2,6 @@ cmake_minimum_required(VERSION 2.8)
 set(CMAKE_CXX_STANDARD 11) 
 project(terrain_generation)
 
-IF(USE_OpenMP)
-  FIND_PACKAGE(OpenMP)
-  IF(OPENMP_FOUND)
-    message("OpenMP Found")
-    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-  ENDIF()
-ENDIF()
-
 option(BUILD_TESTS "Build unit tests" ON)
 option(BUILD_UNITY "Build Unity3D plugin" ON)
 option (USE_OpenMP "Use OpenMP" ON)
@@ -58,24 +49,30 @@ set(TEST_SOURCES
 )
 
 # common.hpp library
-add_library(common INTERFACE)
-target_include_directories(common INTERFACE ${PROJECT_SOURCE_DIR}/include)
+# add_library(common INTERFACE)
+# target_include_directories(common INTERFACE ${PROJECT_SOURCE_DIR}/include)
+
+add_library(utils INTERFACE)
+target_include_directories(utils INTERFACE ${PROJECT_SOURCE_DIR}/include)
+add_library(rng INTERFACE)
+target_include_directories(rng INTERFACE ${PROJECT_SOURCE_DIR}/include)
 
 # Random library
-add_library(Random STATIC ${PROJECT_SOURCE_DIR}/src/Random.cpp)
+# add_library(Random STATIC ${PROJECT_SOURCE_DIR}/src/Random.cpp)
 
 foreach(lib_path ${CORE_LIB_SOURCES})
   get_filename_component(lib_file ${lib_path} NAME)
   string( REPLACE ".cpp" "" lib_name ${lib_file} )
   add_library( ${lib_name} STATIC ${lib_path} )
   list(APPEND LIBS ${lib_name})
-  target_link_libraries(${lib_name} ${OpenCV_LIBS} common Random)
+  target_link_libraries(${lib_name} ${OpenCV_LIBS} utils)
 endforeach()
 
 # Unity Plugin
 add_library(terrain_plugin SHARED unity/terrain_plugin.cpp)
 
-target_link_libraries(${LIBS} ${OpenCV_LIBS} common)
+target_link_libraries(Voronoi rng)
+target_link_libraries(DiamondSquare rng)
 target_link_libraries(ThermalErosion Kernel)
 target_link_libraries(HydraulicErosion Kernel)
 target_link_libraries(FastErosion Kernel)

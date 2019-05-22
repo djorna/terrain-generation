@@ -1,7 +1,6 @@
 #pragma once
 
-#include "common.hpp"
-// #include "Random.hpp"
+#include "rng.hpp"
 
 #include <opencv2/core/core.hpp>
 #include <random>
@@ -47,6 +46,13 @@ public:
   */
   void shiftHeightMask(float mean, float stdev, int seed);
 
+  /**
+   * \brief Widens gaps between peaks
+   * \param img The original Voronoi diagram
+   * \param magnitude The height to subtract from the diagram
+   */
+  void widenGaps(cv::Mat& img, float magnitude);
+
 private:
   void generatePoints(int n_points, int rows, int cols);
 
@@ -62,7 +68,6 @@ private:
   int point_seed;
   int mask_seed;
   int shift_seed;
-  // std::unordered_map<int, std::vector<Point>> region;
 };
 
 } // namespace terrain

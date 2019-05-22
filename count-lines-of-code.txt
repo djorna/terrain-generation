@@ -1,1 +1,0 @@
-git ls-files | grep -e cpp -e hpp | xargs cat | wc -l

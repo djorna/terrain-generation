@@ -1,7 +1,7 @@
 #pragma once
 
-#include "common.hpp"
-#include "Random.hpp"
+#include "utils.hpp"
+#include "rng.hpp"
 
 #include <array>
 #include <string>

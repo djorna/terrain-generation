@@ -19,19 +19,28 @@ public:
 
   void moveMaterial(cv::Mat& img, Point move_from, Point move_to, float amount);
 
-  cv::Mat heightmap;
-  cv::Mat watermap;
-  cv::Mat sedimentmap;
+  /**
+   * \brief Get normalized watermap for viewing
+   */
+  cv::Mat getWatermap() const;
+
+  /**
+   * \brief Get normalized sedimentmap for viewing
+   */
+  cv::Mat getSedimentmap() const;
+
 private:
 
   void HydraulicErosion::rain();
 
-  void HydraulicErosion::erosion();
+  void HydraulicErosion::erosion(cv::Mat& heightmap);
   
-  void HydraulicErosion::transfer();
+  void HydraulicErosion::transfer(cv::Mat& heightmap);
 
-  void HydraulicErosion::evaporate();
+  void HydraulicErosion::evaporate(cv::Mat& heightmap);
 
+  cv::Mat watermap;
+  cv::Mat sedimentmap;
   float k_rain;
   float k_solubility;
   float k_evaporation;

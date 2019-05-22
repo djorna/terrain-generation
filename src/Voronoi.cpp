@@ -7,6 +7,8 @@
 
 #include <omp.h> // OpenMP for multithreading
 
+#include <numeric>
+
 
 namespace terrain
 {
@@ -38,14 +40,15 @@ void Voronoi::generatePoints(int n_points, int rows, int cols)
   */
   // seed_rand(seed);
 
-  std::uniform_int_distribution<int> row_distribution(0, rows);
-  std::uniform_int_distribution<int> col_distribution(0, cols);
+  std::uniform_int_distribution<int> dist(0, rows * cols - 1);
+
   // Random rand_row(0, rows, seed);
   // Random rand_col(0, cols, seed);
   for (int i = 0; i < n_points; ++i)
-  {// 
-    int x = col_distribution(pseudo_rand_engine);
-    int y = row_distribution(pseudo_rand_engine);
+  {
+    int index = dist(pseudo_rand_engine);
+    int x = index % cols;
+    int y = index / cols;
     // int x = rand_row.next<int>();
     // int y = rand_col.next<int>();
     points.push_back(Point(x, y));
@@ -174,4 +177,3 @@ cv::Mat Voronoi::generate()
 }
 
 } // namespace terrain
-

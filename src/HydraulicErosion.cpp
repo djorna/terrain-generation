@@ -1,6 +1,9 @@
 #include "HydraulicErosion.hpp"
 
 #include <iostream>
+#include "utils.hpp"
+
+#include <omp.h>
 
 namespace terrain
 {
@@ -16,16 +19,15 @@ HydraulicErosion::HydraulicErosion(KernelType kt, int rows, int cols,
 
 HydraulicErosion::~HydraulicErosion() {}
 
-void HydraulicErosion::apply(cv::Mat& img, const int iterations)
+void HydraulicErosion::apply(cv::Mat& heightmap, const int iterations)
 {
-  heightmap = img;
   std::cout << "starting...\n";
   for (int pass = 0; pass < iterations; ++pass)
   {
     rain();
-    erosion();
-    transfer();
-    evaporate();
+    erosion(heightmap);
+    transfer(heightmap);
+    evaporate(heightmap);
     std::cout << "Iteration " << pass << " finished.\n";
   }
 }
@@ -41,8 +43,9 @@ void HydraulicErosion::rain()
 /**
  * Step 2: Erode
  */
-void HydraulicErosion::erosion()
+void HydraulicErosion::erosion(cv::Mat& heightmap)
 {
+#pragma omp parallel for num_threads(4)
   for (int i = 0; i < rows; ++i)
   {
     for (int j = 0; j < cols; ++j)
@@ -56,8 +59,10 @@ void HydraulicErosion::erosion()
 /**
  * Step 3: Transfer materials 
  */
-void HydraulicErosion::transfer()
+void HydraulicErosion::transfer(cv::Mat& heightmap)
 {
+  cv::Mat delta_watermap(cv::Size(heightmap.rows, heightmap.cols), CV_32FC1, 0.0f);
+  cv::Mat delta_sedimentmap(cv::Size(heightmap.rows, heightmap.cols), CV_32FC1, 0.0f);
   for (int i = 0; i < rows; ++i)
   {
     for (int j = 0; j < cols; ++j)
@@ -96,32 +101,40 @@ void HydraulicErosion::transfer()
         // std::cout << dlist[i] << '\n';
         float delta_wi = min_val * dlist[i] / d_total;
         // std::cout << "wm before" << watermap.at<float>(center);
-        moveMaterial(watermap, center, nbs[i], delta_wi);
+        // moveMaterial(watermap, center, nbs[i], delta_wi);
+        moveMaterial(delta_watermap, center, nbs[i], delta_wi);
         // std::cout << "wm after" << watermap.at<float>(center);
         float delta_mi = m * delta_wi / w;
-        moveMaterial(sedimentmap, center, nbs[i], delta_mi);
+        // moveMaterial(sedimentmap, center, nbs[i], delta_mi);
+        moveMaterial(delta_sedimentmap, center, nbs[i], delta_mi);
       }
     }
   }
+  cv::add(watermap, delta_watermap, watermap);
+  cv::add(sedimentmap, delta_sedimentmap, sedimentmap);
 }
 
 /**
  * Step 4: Evaporation
  */
-void HydraulicErosion::evaporate()
+void HydraulicErosion::evaporate(cv::Mat& heightmap)
 {
-  watermap *= (1 - k_evaporation);
+  watermap *= (1.0f - k_evaporation);
+
+  cv::Mat delta_sedimentmap(cv::Size(heightmap.rows, heightmap.cols), CV_32FC1, 0.0f);
 
   for (int i = 0; i < rows; ++i)
   {
     for (int j = 0; j < cols; ++j)
     {
       float max_sediment = k_capacity * watermap.at<float>(i, j);
-      float delta_sediment = std::max((float)0, sedimentmap.at<float>(i, j) - max_sediment);
-      sedimentmap.at<float>(i, j) -= delta_sediment;
+      float delta_sediment = std::max(0.0f, sedimentmap.at<float>(i, j) - max_sediment);
+      // sedimentmap.at<float>(i, j) -= delta_sediment;
+      delta_sedimentmap.at<float>(i, j) -= delta_sediment;
       heightmap.at<float>(i, j) += delta_sediment;
     }
   }
+  cv::add(sedimentmap, delta_sedimentmap, sedimentmap);
 }
 
 /**
@@ -131,6 +144,20 @@ void HydraulicErosion::moveMaterial(cv::Mat& img, Point move_from, Point move_to
 {
   img.at<float>(move_from) -= amount;
   img.at<float>(move_to) += amount;
+}
+
+cv::Mat HydraulicErosion::getSedimentmap() const
+{
+  cv::Mat sedimentmap_norm;
+  cv::normalize(sedimentmap, sedimentmap_norm, 1, 0, cv::NORM_MINMAX);
+  return sedimentmap_norm;
+}
+
+cv::Mat HydraulicErosion::getWatermap() const
+{
+  cv::Mat watermap_norm;
+  cv::normalize(watermap, watermap_norm, 1, 0, cv::NORM_MINMAX);
+  return watermap_norm;
 }
 
 } // namespace terrain

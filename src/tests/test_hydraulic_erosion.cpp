@@ -3,7 +3,6 @@
 #include "HydraulicErosion.hpp"
 #include "DiamondSquare.hpp"
 #include "Voronoi.hpp"
-// #include "common.hpp"
 
 using namespace cv;
 using namespace std;
@@ -35,26 +34,30 @@ int main(int argc, char** argv)
 
   int n_points = 50;
   Voronoi vrn = Voronoi(rows, cols, coeffs, n_points);
-  auto heightmap_vrn = vrn.generate();
+  cv::Mat heightmap_vrn = vrn.generate();
 
   // cv::Mat combined = combine({ heightmap_ds, heightmap_vrn }, { 1 / 3, 2 / 3 });
   cv::Mat combined;
   cv::addWeighted(heightmap_ds, 0.67, heightmap_vrn, 0.33, 0, combined);
   cv::normalize(combined, combined, 1, 0, cv::NORM_MINMAX);
 
-  HydraulicErosion hydraulic(MOORE, rows, cols);
+  HydraulicErosion hydraulic(MOORE, rows, cols, 0.1, 0.1, 0.5, 0.1);
+  // HydraulicErosion hydraulic(MOORE, rows, cols);
   cv::Mat eroded;
   combined.copyTo(eroded);
   hydraulic.apply(eroded, iterations);
-  // cv::normalize(eroded, eroded, 1, 0, cv::NORM_MINMAX);
+  std::cout << "Applied!!\n";
+  cv::normalize(eroded, eroded, 1, 0, cv::NORM_MINMAX);
+
+  cv::Mat watermap = hydraulic.getWatermap();
+  cv::Mat sedimentmap = hydraulic.getSedimentmap();
 
   imshow2("Base", combined);
   imshow2("Eroded", eroded);
-  imshow2("heightmap", hydraulic.heightmap);
   //normalize(hydraulic.watermap*255, hydraulic.watermap, 1, 0, cv::NORM_MINMAX);
   //normalize(hydraulic.sedimentmap*255, hydraulic.sedimentmap, 1, 0, cv::NORM_MINMAX);
-  imshow2("watermap", hydraulic.watermap);
-  imshow2("sedmap", hydraulic.sedimentmap);
+  imshow2("watermap", watermap);
+  imshow2("sedmap", sedimentmap);
   // cout << hydraulic.watermap;
   // cout << hydraulic.sedimentmap;
  

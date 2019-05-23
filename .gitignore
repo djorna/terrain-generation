@@ -3,10 +3,5 @@
 build
 build-debug
 env
-SimplestPluginExample-4.0
-SimplexNoise
-unity
-
 papers/*.pdf
-
 misc

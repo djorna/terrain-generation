@@ -1,5 +1,5 @@
-# Terrain-Generation
-Terrain-Generation is an implementation of *Realitime Procedural Terrain Generation* for generating mountainous terrain as a C++ library using OpenCV. The program generates a random height maps using a combination of midpoint displacement, Voronoi diagrams, simplex noise, thermal erosion, hydraulic erosion, and a custom erosion operation. With a little work, the heightmap can be imported into Unity3D, Unreal Engine, Gazebo, or any other physics simulation environment to create 3D landscapes.
+# Terrain Generation
+Terrain Generation is an implementation of *Realitime Procedural Terrain Generation* for generating mountainous terrain as a C++ library using OpenCV. The program generates random height maps using a combination of midpoint displacement, Voronoi diagrams, simplex noise, thermal erosion, hydraulic erosion, and a custom erosion operation. With a little effort, the heightmap can be imported into Unity3D, Unreal Engine, Gazebo, or any other physics simulation environment to create 3D landscapes.
 
 ## References
 **Jacob Olsen: Realtime Procedural Terrain Generation**, University of Southern Denmark, 2004. **[PDF](http://web.mit.edu/cesium/Public/terrain.pdf)**
@@ -24,22 +24,34 @@ Refer to the following sources for instructions on installing OpenCV: [Windows](
 ### Diamond-Square algorithm
     test_diamond_square 9 0.5 # Diamond-square algorithm with side lengths s = 2^9 + 1 = 513 and persistence = 0.5
 
-### Voronoi Diagrams
-    test_voronoi -1 1 50 # Voronoi diagram with c<sub>1</sub>=-1, c<sub>2</sub>=1, and n<sub>points</sub>=50
+![Diamond Square](examples/diamond_square.png)
 
-![example-image](examples/513x513.png)
+### Voronoi Diagrams
+    test_voronoi -1 1 20 # Voronoi diagram with c<sub>1</sub>=-1, c<sub>2</sub>=1, and n<sub>points</sub>=50
+
+![Voronoi](examples/voronoi.png)
 
 ### Combination
-    test_combine
+    test_combine -1 1 20 
+![DiamondSquare and Voronoi Combined](examples/combined.png)
 
 ### Perturbation Filter
-    test_perturb ... 
+    test_perturb 0.1 # Run perturbation with magnitude of 0.1
+
+![Perturbation Filter](examples/perturb.png)
 
 
 ### Thermal Erosion
+    test_thermal_erosion 50 # 50 Iterations of thermal erosion
 
+![After Thermal Erosion](examples/thermal_erosion_eroded.png)
 
 ### Hydraulic Erosion
+    test_hydraulic_erosion 50 0.1 0.1 0.5 0.1
 
+![After Hydraulic Erosion](examples/hydraulic_erosion_eroded.png)
 
-### Optimized Erosion
+### Fast Erosion
+    test_fast_erosion 50
+
+![After Fast Erosion](examples/fast_erosion_eroded.png)

@@ -3,6 +3,7 @@
 #include "ThermalErosion.hpp"
 #include "DiamondSquare.hpp"
 #include "Voronoi.hpp"
+#include "Perturb.hpp"
 
 using namespace std;
 using namespace std::chrono;
@@ -17,8 +18,6 @@ void imshow2(std::string windowName, cv::Mat img)
 
 int main(int argc, char** argv)
 {
- // Get coeff for Voronoi
-  std::vector<float> coeffs{ -1, 1 };
   int iterations = std::stoi(argv[1]);
 
   int n = pow(2, 9) + 1; // 513 x 513 image
@@ -26,16 +25,19 @@ int main(int argc, char** argv)
   float persistence = 0.5; // Higher = more jagged terrain
   
   DiamondSquare diamondSquare;
-  auto heightmap_ds = diamondSquare.generate(n, persistence);
+  auto heightmap_ds = diamondSquare.generate(n, persistence, 1337);
 
-  int n_points = 50;
-  Voronoi vrn(rows, cols, coeffs, n_points);
+  std::vector<float> coeffs{ -1, 1 };
+  int n_points = 20;
+  Voronoi vrn(rows, cols, coeffs, n_points, 1337);
   auto heightmap_vrn = vrn.generate();
 
   // cv::Mat combined = combine({ heightmap_ds, heightmap_vrn }, { 1 / 3, 2 / 3 });
   cv::Mat combined;
   cv::addWeighted(heightmap_ds, 0.67, heightmap_vrn, 0.33, 0, combined);
   cv::normalize(combined, combined, 1, 0, cv::NORM_MINMAX);
+
+  combined = Perturb::apply(combined, 0.1);
 
   ThermalErosion thermal(MOORE);
   cv::Mat eroded;
@@ -52,16 +54,16 @@ int main(int argc, char** argv)
   imshow2("Base", combined);
   imshow2("Eroded", eroded);
 
-  /*
-  for (int i = 0; i < 513; ++i) {
-    for (int j = 0; j < 513; ++j) {
-      if (combined.at<float>(i, j) != eroded.at<float>(i, j))
-        std::cout << "Wow!" << combined.at<float>(i, j) - eroded.at<float>(i, j) << std::endl;
-    }
-  }
-  */
-
   cv::waitKey(0);
+
+  cv::Mat eroded_img;
+  cv::Mat base_img;
+  eroded *= 255;
+  eroded.convertTo(eroded_img, CV_8UC1);
+  combined *= 255;
+  combined.convertTo(base_img, CV_8UC1);
+  cv::imwrite("../../examples/thermal_erosion_base.png", base_img);
+  cv::imwrite("../../examples/thermal_erosion_eroded.png", eroded_img);
 
   return 0;
 }

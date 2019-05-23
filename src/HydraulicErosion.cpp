@@ -63,6 +63,8 @@ void HydraulicErosion::transfer(cv::Mat& heightmap)
 {
   cv::Mat delta_watermap(cv::Size(heightmap.rows, heightmap.cols), CV_32FC1, 0.0f);
   cv::Mat delta_sedimentmap(cv::Size(heightmap.rows, heightmap.cols), CV_32FC1, 0.0f);
+
+// #pragma omp parallel for num_threads(4)
   for (int i = 0; i < rows; ++i)
   {
     for (int j = 0; j < cols; ++j)
@@ -100,16 +102,15 @@ void HydraulicErosion::transfer(cv::Mat& heightmap)
       {
         // std::cout << dlist[i] << '\n';
         float delta_wi = min_val * dlist[i] / d_total;
-        // std::cout << "wm before" << watermap.at<float>(center);
         // moveMaterial(watermap, center, nbs[i], delta_wi);
         moveMaterial(delta_watermap, center, nbs[i], delta_wi);
-        // std::cout << "wm after" << watermap.at<float>(center);
         float delta_mi = m * delta_wi / w;
         // moveMaterial(sedimentmap, center, nbs[i], delta_mi);
         moveMaterial(delta_sedimentmap, center, nbs[i], delta_mi);
       }
     }
   }
+  // Apply difference operation
   cv::add(watermap, delta_watermap, watermap);
   cv::add(sedimentmap, delta_sedimentmap, sedimentmap);
 }
@@ -123,6 +124,7 @@ void HydraulicErosion::evaporate(cv::Mat& heightmap)
 
   cv::Mat delta_sedimentmap(cv::Size(heightmap.rows, heightmap.cols), CV_32FC1, 0.0f);
 
+#pragma omp parallel for num_threads(4)
   for (int i = 0; i < rows; ++i)
   {
     for (int j = 0; j < cols; ++j)

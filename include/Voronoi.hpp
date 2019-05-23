@@ -53,6 +53,10 @@ public:
    */
   void widenGaps(cv::Mat& img, float magnitude);
 
+  PointList getPoints() const;
+
+  void getPoints(float* x, float* y) const;
+
 private:
   void generatePoints(int n_points, int rows, int cols, bool regularize=true);
 

@@ -3,6 +3,7 @@
 #include "FastErosion.hpp"
 #include "DiamondSquare.hpp"
 #include "Voronoi.hpp"
+#include "Perturb.hpp"
 
 using namespace std;
 using namespace std::chrono;
@@ -26,16 +27,18 @@ int main(int argc, char** argv)
   float persistence = 0.5; // Higher = more jagged terrain
   
   DiamondSquare diamondSquare;
-  auto heightmap_ds = diamondSquare.generate(n, persistence);
+  auto heightmap_ds = diamondSquare.generate(n, persistence, 1337);
 
-  int n_points = 50;
-  Voronoi vrn(rows, cols, coeffs, n_points);
+  int n_points = 20;
+  Voronoi vrn(rows, cols, coeffs, n_points, 1337);
   auto heightmap_vrn = vrn.generate();
 
   // cv::Mat combined = combine({ heightmap_ds, heightmap_vrn }, { 1 / 3, 2 / 3 });
   cv::Mat combined;
   cv::addWeighted(heightmap_ds, 0.67, heightmap_vrn, 0.33, 0, combined);
   cv::normalize(combined, combined, 1, 0, cv::NORM_MINMAX);
+
+  combined = Perturb::apply(combined, 0.1);
 
   FastErosion erosion(VON_NEUMANN2);
   cv::Mat eroded;
@@ -52,16 +55,12 @@ int main(int argc, char** argv)
   imshow2("Base", combined);
   imshow2("Eroded", eroded);
 
-  /*
-  for (int i = 0; i < 513; ++i) {
-    for (int j = 0; j < 513; ++j) {
-      if (combined.at<float>(i, j) != eroded.at<float>(i, j))
-        std::cout << "Wow!" << combined.at<float>(i, j) - eroded.at<float>(i, j) << std::endl;
-    }
-  }
-  */
-
   cv::waitKey(0);
+
+  cv::Mat eroded_img;
+  eroded *= 255;
+  eroded.convertTo(eroded_img, CV_8UC1);
+  cv::imwrite("../../examples/fast_erosion_eroded.png", eroded_img);
 
   return 0;
 }

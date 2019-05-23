@@ -52,5 +52,10 @@ int main(int argc, char** argv) {
 
   waitKey(0);
 
+  cv::Mat vrn_uint8;
+  vrn_img *= 255;
+  vrn_img.convertTo(vrn_uint8, CV_8UC1);
+  cv::imwrite("voronoi.png", vrn_uint8);
+
   return 0;
 }

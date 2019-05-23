@@ -1,5 +1,7 @@
 #include "FastErosion.hpp"
 
+#include <omp.h>
+
 namespace terrain
 {
 
@@ -38,6 +40,7 @@ void FastErosion::apply(cv::Mat& img, int iterations)
 {
   for (int pass; pass < iterations; ++pass)
   {
+#pragma omp parallel for num_threads(8)
     for (int i = 0; i < img.rows; ++i)
     {
       for (int j = 0; j < img.cols; ++j)

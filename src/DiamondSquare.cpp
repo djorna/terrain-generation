@@ -5,6 +5,7 @@
 namespace terrain
 {
 
+/*
 cv::VideoWriter writer;
 int codec = cv::VideoWriter::fourcc('M', 'J', 'P', 'G');
 std::string filename = "./live.avi";             // name of the output video file
@@ -14,6 +15,7 @@ float max = -1;
 float min = 1;
 float total = 0;
 int count = 0;
+*/
 
 DiamondSquare::DiamondSquare() {}
 
@@ -29,15 +31,8 @@ void DiamondSquare::applySquare(cv::Mat& heightmap, const int row, const int col
     
   float height = average(feature_points) + offset;
   heightmap.at<float>(row, col) = height;
-  max = std::max(max, height);
-  min = std::min(min, height);
   // cv::imshow("DiamondSquare", heightmap);
   // cv::waitKey(1);
-  heightmap.copyTo(src);
-  src = (src + 1.0f) * 255.0f / 2.0f;
-  // src *= 255;
-  src.convertTo(src, CV_8UC1);
-  writer.write(src);
 }
 
 void DiamondSquare::applyDiamond(cv::Mat& heightmap, int row, int col, int k, float offset) {
@@ -48,17 +43,10 @@ void DiamondSquare::applyDiamond(cv::Mat& heightmap, int row, int col, int k, fl
                + heightmap.at<float>(row + step, col + step);
   height /= 4;
   height += offset;
-  max = std::max(max, height);
-  min = std::min(min, height);
   heightmap.at<float>(row, col) = height;
 
   // cv::imshow("DiamondSquare", heightmap);
   // cv::waitKey(1);
-  heightmap.copyTo(src);
-  src = (src + 1.0f) * 255.0f / 2.0f;
-  // src *= 255;
-  src.convertTo(src, CV_8UC1);
-  writer.write(src);
 }
 
 void DiamondSquare::diamond(cv::Mat& heightmap, int k, float p) {
@@ -111,11 +99,6 @@ cv::Mat DiamondSquare::generate(const int n, const std::array<float, 4> corners,
   cv::Mat heightmap;
   heightmap = cv::Mat::zeros(cv::Size(n, n), CV_32FC1);
 
-  heightmap.copyTo(src);
-  src *= 255;
-  src.convertTo(src, CV_8UC1);
-  writer.open(filename, codec, fps, heightmap.size(), false);
-
   // Initialize corners
   heightmap.at<float>(0, 0) = corners[0];
   heightmap.at<float>(0, n - 1) = corners[1];
@@ -129,8 +112,6 @@ cv::Mat DiamondSquare::generate(const int n, const std::array<float, 4> corners,
   diamondSquare(heightmap, n, decay);
   if (normalized)
     cv::normalize(heightmap, heightmap, 1, 0, cv::NORM_MINMAX);
-  std::cout << "\nmax: " << max;
-  std::cout << "\nmin: " << min;
   return heightmap;
 }
 

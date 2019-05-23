@@ -8,9 +8,6 @@
 
 using namespace terrain;
 
-// https://stackoverflow.com/questions/49482647/convert-opencv-mat-to-texture2d
-
-
 void imshow2(std::string windowName, cv::Mat img)
 {
   namedWindow(windowName, cv::WINDOW_NORMAL );// Create a window for display.
@@ -35,13 +32,13 @@ int main(int argc, char** argv)
   cv::Mat heightmap_ds;
   std::thread ds_thread([&] {
     DiamondSquare diamondSquare;
-    heightmap_ds = diamondSquare.generate(n, persistence);
+    heightmap_ds = diamondSquare.generate(n, persistence, 1337);
   });
   // auto heightmap_ds = diamondSquare.generate(n, persistence);
 
   cv::Mat heightmap_vrn;
   std::thread vrn_thread([&] {
-    Voronoi vrn(rows, cols, coeffs, n_points);
+    Voronoi vrn(rows, cols, coeffs, n_points, 1337);
     heightmap_vrn = vrn.generate();
   });
 
@@ -58,6 +55,11 @@ int main(int argc, char** argv)
   imshow2("cmb", combined);
 
   cv::waitKey(0);
+
+  cv::Mat combined_img;
+  combined *= 255;
+  combined.convertTo(combined_img, CV_8UC1);
+  cv::imwrite("../../examples/combined.png", combined_img);
 
   return 0;
 }

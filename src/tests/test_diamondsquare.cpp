@@ -32,8 +32,37 @@ int main(int argc, char** argv) {
   
   DiamondSquare diamondSquare;
 
-  cv::Mat heightmap = diamondSquare.generate(n, persistence, seed);
+  cv::VideoWriter writer;
+  int codec = cv::VideoWriter::fourcc('M','J','P','G');
+  std::string filename = "./diamond_square_demo.avi";             // name of the output video file
+  double fps = 3;
+  writer.open(filename, codec, fps, cv::Size(n, n), false);
+
+  cout << "Recording video...";
+  cv::Mat heightmap  = diamondSquare.generate(n, persistence, seed);
   cv::imshow("Generated terrain", heightmap);
+
+  cv::Mat ds_img;
+  heightmap *= 255;
+  heightmap.convertTo(ds_img, CV_8UC1);
+  cv::imwrite("../../examples/diamond_square.png", ds_img);
+
+  /*
+  for (persistence = 0.1; persistence < 1; persistence += 0.05)
+  {
+    heightmap = diamondSquare.generate(n, persistence, ++seed);
+    heightmap *= 255;
+    heightmap.convertTo(heightmap, CV_8UC1);
+    stringstream ss;
+    ss << setprecision(3) << "Persistence = " << persistence;
+    cv::putText(heightmap, ss.str(),
+      { 20, 20 }, cv::FONT_HERSHEY_SIMPLEX, 0.5, 255, 1, cv::LINE_AA);
+    // cv::imshow("Frame", heightmap);
+    // cv::waitKey(1);
+    writer.write(heightmap);
+  }
+  cout << "done.\n";
+  */
 
   cv::waitKey(0);
   

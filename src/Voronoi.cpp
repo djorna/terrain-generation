@@ -190,4 +190,23 @@ cv::Mat Voronoi::generate()
   return heatmap;
 }
 
+
+Voronoi::PointList Voronoi::getPoints() const
+{
+  return points;
+}
+
+void Voronoi::getPoints(float* x, float* y) const
+{
+  std::vector<float> x_vec(points.size());
+  std::vector<float> y_vec(points.size());
+  for (int i = 0; i < points.size(); ++i)
+  {
+    x_vec[i] = points[i].x;
+    y_vec[i] = points[i].y;
+  }
+  x = &x_vec[0];
+  y = &y_vec[0];
+}
+
 } // namespace terrain

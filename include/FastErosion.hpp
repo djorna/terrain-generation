@@ -13,8 +13,6 @@ class FastErosion : public Kernel
   public:
     FastErosion(KernelType kernel_type=VON_NEUMANN2);
 
-    ~FastErosion();
-
     void operation(cv::Mat& img, Point center, std::vector<Point> neighbours);
 
     void apply(cv::Mat& img, int iterations=1);

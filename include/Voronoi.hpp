@@ -30,7 +30,7 @@ public:
 
   void drawPoints(cv::Mat& img) const;
 
-  cv::Mat generate();
+  cv::Mat generate(bool normalize=true);
 
   /**
   * \brief Uniformly cull a percentage
@@ -55,10 +55,14 @@ public:
 
   PointList getPoints() const;
 
-  void getPoints(float* x, float* y) const;
+  void setPoints(int*x, int* y);
+
+  void setWeights(float* weights);
+
+  void getPoints(int* x, int* y) const;
 
 private:
-  void generatePoints(int n_points, int rows, int cols, bool regularize=true);
+  void generatePoints(int n_points, int rows, int cols, int seed=-1, bool regularize=true);
 
   cv::Mat heatmap;
   PointList points;

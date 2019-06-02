@@ -12,14 +12,13 @@
 #include <numeric>
 #include <cmath>
 
-
 namespace terrain
 {
 
 Voronoi::Voronoi(int rows, int cols, std::vector<float> coeffs, int n_points, int seed, bool regularize)
   : rows(rows), cols(cols), coeffs(coeffs), seed(seed)
 {
-  generatePoints(n_points, rows, cols);
+  generatePoints(n_points, rows, cols, seed, regularize);
   multipliers.resize(n_points, 1);
 }
 
@@ -31,9 +30,10 @@ Voronoi::Voronoi(int rows, int cols, std::vector<float> coeffs, PointList points
 
 Voronoi::~Voronoi() {}
 
-void Voronoi::generatePoints(int n_points, int rows, int cols, bool regularize)
+void Voronoi::generatePoints(int n_points, int rows, int cols, int seed, bool regularize)
 {
   std::uniform_int_distribution<int> dist(0, rows * cols - 1);
+  seed_rand(seed);
 
   if (regularize)
   {
@@ -135,7 +135,7 @@ void Voronoi::shiftHeightMask(float mean, float stdev, int seed)
   }
 }
 
-cv::Mat Voronoi::generate()
+cv::Mat Voronoi::generate(bool normalize)
 {
   heatmap = cv::Mat::zeros(rows, cols, CV_32FC1);
 
@@ -163,6 +163,9 @@ cv::Mat Voronoi::generate()
   std::vector<int> indices_data(knn);
   std::vector<float> dists_data(knn);
 
+  float max_value = 0;
+  float min_value = INFINITY;
+
 #pragma omp parallel for num_threads(4) firstprivate(indices, dists, query, indices_data, dists_data, query_data)
   for (int i = 0; i < rows; ++i)
   {
@@ -179,34 +182,44 @@ cv::Mat Voronoi::generate()
       float pixel_value = 0;
       for (int c = 0; c < coeffs.size(); ++c) {
         pixel_value += coeffs[c] * dists[0][c];
+        max_value = std::max(max_value, pixel_value);
+        min_value = std::min(min_value, pixel_value);
       }
       pixel_value *= multipliers[indices[0][0]];
       heatmap.at<float>(i, j) = pixel_value;
     }
   }
   
-  cv::normalize(heatmap, heatmap, 1, 0, cv::NORM_MINMAX);
+  if (normalize)
+  {
+    heatmap -= min_value;
+    heatmap /= (max_value - min_value);
+  }
+  // cv::normalize(heatmap, heatmap, 1, 0, cv::NORM_MINMAX);
 
   return heatmap;
 }
 
-
-Voronoi::PointList Voronoi::getPoints() const
+void Voronoi::setWeights(float* weights)
 {
-  return points;
+  // TODO error handling for pointer
+  for (int i = 0; i < points.size(); ++i)
+    multipliers[i] = weights[i];
 }
 
-void Voronoi::getPoints(float* x, float* y) const
+Voronoi::PointList Voronoi::getPoints() const { return points; }
+
+void Voronoi::getPoints(int* x, int* y) const
 {
-  std::vector<float> x_vec(points.size());
-  std::vector<float> y_vec(points.size());
+  std::vector<int> x_vec(points.size());
+  std::vector<int> y_vec(points.size());
   for (int i = 0; i < points.size(); ++i)
   {
     x_vec[i] = points[i].x;
     y_vec[i] = points[i].y;
   }
-  x = &x_vec[0];
-  y = &y_vec[0];
+  std::memcpy(x, x_vec.data(), x_vec.size() * sizeof(float));
+  std::memcpy(y, y_vec.data(), y_vec.size() * sizeof(float));
 }
 
 } // namespace terrain

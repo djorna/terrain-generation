@@ -17,7 +17,7 @@ ENDIF()
 
 find_package(OpenCV REQUIRED)
 
-include_directories(${PROJECT_SOURCE_DIR}/include)
+include_directories(${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/thirdparty)
 
 if(BUILD_UNITY)
   include_directories(${PROJECT_SOURCE_DIR}/unity)
@@ -30,9 +30,9 @@ set(CORE_LIB_SOURCES
   ${PROJECT_SOURCE_DIR}/src/HydraulicErosion.cpp
   ${PROJECT_SOURCE_DIR}/src/FastErosion.cpp
   ${PROJECT_SOURCE_DIR}/src/Kernel.cpp
-  ${PROJECT_SOURCE_DIR}/src/SimplexNoise.cpp
   ${PROJECT_SOURCE_DIR}/src/Perturb.cpp
   ${PROJECT_SOURCE_DIR}/src/Evaluator.cpp
+  ${PROJECT_SOURCE_DIR}/thirdparty/SimplexNoise.cpp
 )
 
 set(TEST_SOURCES
@@ -42,7 +42,6 @@ set(TEST_SOURCES
   ${PROJECT_SOURCE_DIR}/src/tests/test_thermal_erosion.cpp
   ${PROJECT_SOURCE_DIR}/src/tests/test_hydraulic_erosion.cpp
   ${PROJECT_SOURCE_DIR}/src/tests/test_mask.cpp
-  ${PROJECT_SOURCE_DIR}/src/tests/test_random.cpp
   ${PROJECT_SOURCE_DIR}/src/tests/test_perturb.cpp
   ${PROJECT_SOURCE_DIR}/src/tests/test_eval.cpp
   ${PROJECT_SOURCE_DIR}/src/tests/test_fast_erosion.cpp
@@ -94,7 +93,6 @@ if(BUILD_TESTS)
   target_link_libraries(test_thermal_erosion Voronoi DiamondSquare ThermalErosion Perturb)
   target_link_libraries(test_hydraulic_erosion Voronoi DiamondSquare HydraulicErosion Perturb)
   target_link_libraries(test_mask Voronoi DiamondSquare)
-  target_link_libraries(test_random Random)
   target_link_libraries(test_perturb Voronoi DiamondSquare Perturb)
   target_link_libraries(test_eval Voronoi DiamondSquare Perturb Evaluator)
   target_link_libraries(test_fast_erosion Voronoi DiamondSquare FastErosion Perturb)

@@ -52,18 +52,47 @@ extern "C"
     extractData(heightmap, data);
   }
 
-  void EXPORT_API VoronoiPlugin(float* data, float* points_x, float* points_y, int n, int n_points, int n_coeffs, float* coeffs,
+  void EXPORT_API VoronoiPlugin(float* data, int* points_x, int* points_y, int n, int n_points, int n_coeffs, float* coeffs, int seed)
+  {
+    int rows = n, cols = n;
+    std::vector<float> vcoeffs(coeffs, coeffs + n_coeffs);
+    Voronoi vrn(rows, cols, vcoeffs, n_points, seed, false);
+    // vrn.binaryMask(keep, mask_seed);
+    // vrn.shiftHeightMask(mean, stdev, shift_seed);
+    cv::Mat vrn_img = vrn.generate();
+    vrn.getPoints(points_x, points_y);
+    extractData(vrn_img, data);
+  }
+
+  void EXPORT_API VoronoiWeightedPlugin(float* data, int* points_x, int* points_y, float* weights, int n, int n_points, int n_coeffs, float* coeffs, int seed)
+  {
+    int rows = n, cols = n;
+    std::vector<float> vcoeffs(coeffs, coeffs + n_coeffs);
+    Voronoi vrn(rows, cols, vcoeffs, n_points, seed, true);
+    // vrn.binaryMask(keep, mask_seed);
+    // vrn.shiftHeightMask(mean, stdev, shift_seed);
+    vrn.setWeights(weights);
+    cv::Mat vrn_img = vrn.generate(true);
+    vrn.getPoints(points_x, points_y);
+    extractData(vrn_img, data);
+  }
+
+  /*
+  void EXPORT_API VoronoiPlugin(float* data, int* points_x, int* points_y, int n, int n_points, int n_coeffs, float* coeffs,
     int point_seed, float keep, int mask_seed, float mean, float stdev, int shift_seed)
   {
     int rows = n, cols = n;
     std::vector<float> vcoeffs(coeffs, coeffs + n_coeffs);
-    Voronoi vrn = Voronoi(rows, cols, vcoeffs, n_points);
-    vrn.binaryMask(keep, mask_seed);
+    Voronoi vrn = Voronoi(rows, cols, vcoeffs, n_points, point_seed);
+    // vrn.binaryMask(keep, mask_seed);
     // vrn.shiftHeightMask(mean, stdev, shift_seed);
     cv::Mat vrn_img = vrn.generate();
-    vrn.
+    vrn.getPoints(points_x, points_y);
+    cv::imshow("vrn", vrn_img);
+    cv::waitKey(0);
     extractData(vrn_img, data);
   }
+  */
 
   /*
   void EXPORT_API CombinedPlugin(float* data, int n, int n_points, int n_coeffs, float* coeffs, float persistence)

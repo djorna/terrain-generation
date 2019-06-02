@@ -28,7 +28,7 @@ Refer to the following sources for instructions on installing OpenCV: [Windows](
 
 ### Voronoi Diagrams
 
-    test_voronoi -1 1 20 # Voronoi diagram with c_1 =-1, c_2=1, and n_points>=50
+    test_voronoi -1 1 20 # Voronoi diagram with c_1 =-1, c_2=1, and n_points=50
 
 ![Voronoi](examples/voronoi.png)
 
